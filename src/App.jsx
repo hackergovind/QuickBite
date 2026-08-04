@@ -15,6 +15,8 @@ import OwnerDashboard from './pages/OwnerDashboard.jsx'
 import NotFound from './pages/NotFound.jsx'
 import ProtectedRoute, { OwnerRoute } from './components/ProtectedRoute.jsx'
 import { RestaurantProvider } from './contexts/RestaurantContext.jsx'
+import { OrdersProvider } from './contexts/OrdersContext.jsx'
+import { ReviewsProvider } from './contexts/ReviewsContext.jsx'
 
 // Layout wrapper — hides Navbar/Footer on owner dashboard
 function CustomerLayout({ children }) {
@@ -29,43 +31,47 @@ function CustomerLayout({ children }) {
 
 export default function App() {
   return (
-    <RestaurantProvider>
-      <Routes>
-        {/* Owner Dashboard — full-screen, no navbar/footer */}
-        <Route
-          path="/owner-dashboard"
-          element={
-            <OwnerRoute>
-              <OwnerDashboard />
-            </OwnerRoute>
-          }
-        />
+    <ReviewsProvider>
+      <OrdersProvider>
+        <RestaurantProvider>
+        <Routes>
+          {/* Owner Dashboard — full-screen, no navbar/footer */}
+          <Route
+            path="/owner-dashboard"
+            element={
+              <OwnerRoute>
+                <OwnerDashboard />
+              </OwnerRoute>
+            }
+          />
 
-        {/* All customer-facing routes */}
-        <Route
-          path="/*"
-          element={
-            <CustomerLayout>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/restaurants" element={<Restaurants />} />
-                <Route path="/restaurant/:id" element={<RestaurantDetails />} />
-                <Route path="/food/:id" element={<FoodDetails />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/checkout" element={
-                  <ProtectedRoute><Checkout /></ProtectedRoute>
-                } />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/profile" element={
-                  <ProtectedRoute><Profile /></ProtectedRoute>
-                } />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </CustomerLayout>
-          }
-        />
-      </Routes>
-    </RestaurantProvider>
+          {/* All customer-facing routes */}
+          <Route
+            path="/*"
+            element={
+              <CustomerLayout>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/restaurants" element={<Restaurants />} />
+                  <Route path="/restaurant/:id" element={<RestaurantDetails />} />
+                  <Route path="/food/:id" element={<FoodDetails />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/checkout" element={
+                    <ProtectedRoute><Checkout /></ProtectedRoute>
+                  } />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
+                  <Route path="/profile" element={
+                    <ProtectedRoute><Profile /></ProtectedRoute>
+                  } />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </CustomerLayout>
+            }
+          />
+        </Routes>
+        </RestaurantProvider>
+      </OrdersProvider>
+    </ReviewsProvider>
   )
 }

@@ -32,7 +32,7 @@ export default function Home() {
       {/* Featured Restaurants */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-end mb-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
             <div>
               <h2 className="text-3xl font-bold text-dark-900 mb-2">Popular Restaurants</h2>
               <p className="text-gray-500">Top-rated places near you</p>
@@ -66,7 +66,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Trending Foods */}
+      {/* City Popular Dishes */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 mb-8">
@@ -74,7 +74,7 @@ export default function Home() {
               <FaFire className="text-primary-500" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-dark-900">Trending Now</h2>
+              <h2 className="text-3xl font-bold text-dark-900">City Popular Dishes</h2>
               <p className="text-gray-500">Most ordered dishes this week</p>
             </div>
           </div>

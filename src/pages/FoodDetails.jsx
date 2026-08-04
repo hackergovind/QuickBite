@@ -93,7 +93,7 @@ export default function FoodDetails() {
               {food.description}
             </p>
 
-            <div className="flex items-center justify-between mb-8 p-6 bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 p-6 bg-white rounded-2xl border border-gray-100 shadow-sm">
               <div>
                 <p className="text-sm text-gray-500 mb-1">Price</p>
                 <p className="text-3xl font-bold text-dark-900">${food.price.toFixed(2)}</p>

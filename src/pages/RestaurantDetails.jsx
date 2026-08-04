@@ -9,6 +9,8 @@ export default function RestaurantDetails() {
   const { id } = useParams()
   const [activeTab, setActiveTab] = useState('all')
   const [isLiked, setIsLiked] = useState(false)
+  const [sortBy, setSortBy] = useState('recommended')
+  const [showNonVeg, setShowNonVeg] = useState(true)
   const { ownerRestaurants } = useRestaurantOwner()
 
   // Merge static + owner restaurants for lookup
@@ -20,9 +22,23 @@ export default function RestaurantDetails() {
 
   const foodCategories = ['all', ...new Set(restaurantFoods.map(f => f.category))]
 
-  const filteredFoods = activeTab === 'all'
+  // Apply filters and sorting
+  let filteredFoods = activeTab === 'all'
     ? restaurantFoods
     : restaurantFoods.filter(f => f.category === activeTab)
+
+  // Veg / Non-Veg filter
+  if (!showNonVeg) {
+    filteredFoods = filteredFoods.filter(f => f.isVeg)
+  }
+
+  // Sorting
+  filteredFoods = [...filteredFoods].sort((a, b) => {
+    if (sortBy === 'price-low') return a.price - b.price
+    if (sortBy === 'price-high') return b.price - a.price
+    if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0)
+    return 0 // recommended (default)
+  })
 
   if (!restaurant) {
     return (
@@ -122,21 +138,60 @@ export default function RestaurantDetails() {
           </div>
         </div>
 
-        {/* Menu Tabs */}
-        <div className="flex gap-2 overflow-x-auto hide-scrollbar mb-8 pb-2">
-          {foodCategories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setActiveTab(cat)}
-              className={`px-5 py-2.5 rounded-xl font-medium text-sm capitalize whitespace-nowrap transition-all duration-300 ${
-                activeTab === cat
-                  ? 'bg-primary-500 text-white shadow-lg shadow-primary-200'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+        {/* Menu Tabs & Filters */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+          {/* Categories */}
+          <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2 lg:pb-0">
+            {foodCategories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setActiveTab(cat)}
+                className={`px-5 py-2.5 rounded-xl font-medium text-sm capitalize whitespace-nowrap transition-all duration-300 ${
+                  activeTab === cat
+                    ? 'bg-primary-500 text-white shadow-lg shadow-primary-200'
+                    : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          {/* Filters */}
+          <div className="flex items-center gap-4">
+            {/* Veg / Non-Veg Toggle */}
+            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
+              <span className={`text-sm font-bold ${!showNonVeg ? 'text-green-600' : 'text-gray-400'}`}>Veg</span>
+              <button
+                onClick={() => setShowNonVeg(!showNonVeg)}
+                className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
+                  showNonVeg ? 'bg-red-500' : 'bg-green-500'
+                }`}
+              >
+                <div
+                  className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 ${
+                    showNonVeg ? 'left-7' : 'left-1'
+                  }`}
+                />
+              </button>
+              <span className={`text-sm font-bold ${showNonVeg ? 'text-red-500' : 'text-gray-400'}`}>Non-Veg</span>
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
+              <span className="text-gray-400 text-sm">Sort by:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="text-sm font-medium text-dark-900 bg-transparent border-none outline-none cursor-pointer"
+              >
+                <option value="recommended">Recommended</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="rating">Top Rated</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         {/* Food Grid */}
