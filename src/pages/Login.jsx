@@ -19,6 +19,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     let timer
@@ -26,11 +27,13 @@ export default function Login() {
     return () => clearTimeout(timer)
   }, [countdown])
 
-  const handleEmailLogin = (e) => {
+  const handleEmailLogin = async (e) => {
     e.preventDefault()
     setError('')
     if (!email || !password) return setError('Please enter email and password')
-    const result = login(email, password)
+    setLoading(true)
+    const result = await login(email, password)
+    setLoading(false)
     if (result.success) {
       navigate(location.state?.from?.pathname || (result.role === 'owner' ? '/owner-dashboard' : '/'))
     } else {
@@ -41,9 +44,9 @@ export default function Login() {
   const handleGoogleLogin = () => {
     setGoogleLoading(true)
     setTimeout(() => {
-      login('google@quickbite.com', 'google')
-      navigate('/')
-    }, 1500)
+      setError('Google sign-in is not connected to the backend yet')
+      setGoogleLoading(false)
+    }, 600)
   }
 
   const handleSendOtp = (e) => {
@@ -58,8 +61,7 @@ export default function Login() {
     e.preventDefault()
     const code = otp.join('')
     if (code.length < 6) return setError('Please enter the full 6-digit code')
-    login('otp_user@quickbite.com', 'otp')
-    navigate('/')
+    setError('Phone OTP sign-in is not connected to the backend yet')
   }
 
   const handleResetPassword = (e) => {
@@ -145,8 +147,8 @@ export default function Login() {
                 </div>
               </div>
 
-              <button type="submit" className="btn-primary w-full justify-center py-3.5 mt-2">
-                Log In
+              <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-3.5 mt-2 disabled:opacity-60">
+                {loading ? 'Logging in...' : 'Log In'}
               </button>
 
               <div className="flex items-center gap-3 my-5">

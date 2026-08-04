@@ -5,6 +5,18 @@ import react from 'eslint-plugin-react'
 export default [
   js.configs.recommended,
   {
+    files: ['backend/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.es2021
+      },
+      parserOptions: {
+        sourceType: 'module'
+      }
+    }
+  },
+  {
     files: ['**/*.{js,jsx}'],
     plugins: { react },
     languageOptions: {

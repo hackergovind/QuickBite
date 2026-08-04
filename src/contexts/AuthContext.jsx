@@ -1,74 +1,77 @@
-import React, { createContext, useContext, useState, useCallback } from 'react'
+import React, { createContext, useCallback, useContext, useState } from 'react'
+import { apiRequest, clearSession, getStoredSession, storeSession } from '../lib/api.js'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('cravedrop_user')
-    return saved ? JSON.parse(saved) : null
-  })
+  const [session, setSession] = useState(() => getStoredSession())
+  const user = session?.user || null
 
-  const login = useCallback((email, password) => {
-    // Check if this email was registered as a restaurant owner
-    const allUsers = JSON.parse(localStorage.getItem('cravedrop_all_users') || '[]')
-    const existingUser = allUsers.find(u => u.email === email)
-
-    const role = existingUser?.role || 'customer'
-    const name = existingUser?.name || 'User'
-
-    const mockUser = {
-      id: existingUser?.id || Date.now().toString(),
-      name,
-      email,
-      role,
-      avatar: existingUser?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-      phone: existingUser?.phone || '',
-      address: existingUser?.address || ''
-    }
-    setUser(mockUser)
-    localStorage.setItem('cravedrop_user', JSON.stringify(mockUser))
-    return { success: true, role }
+  const persistSession = useCallback((nextSession) => {
+    setSession(nextSession)
+    storeSession(nextSession)
   }, [])
 
-  const signup = useCallback((name, email, password, role = 'customer') => {
-    const newUser = {
-      id: Date.now().toString(),
-      name,
-      email,
-      role,
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-      phone: '',
-      address: ''
+  const login = useCallback(async (email, password) => {
+    try {
+      const nextSession = await apiRequest('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password })
+      })
+      persistSession(nextSession)
+      return { success: true, role: nextSession.user.role }
+    } catch (error) {
+      return { success: false, error: error.message }
     }
+  }, [persistSession])
 
-    // Store in all users registry
-    const allUsers = JSON.parse(localStorage.getItem('cravedrop_all_users') || '[]')
-    const exists = allUsers.find(u => u.email === email)
-    if (!exists) {
-      allUsers.push(newUser)
-      localStorage.setItem('cravedrop_all_users', JSON.stringify(allUsers))
+  const signup = useCallback(async (name, email, password, role = 'customer') => {
+    try {
+      const nextSession = await apiRequest('/auth/signup', {
+        method: 'POST',
+        body: JSON.stringify({ name, email, password, role })
+      })
+      persistSession(nextSession)
+      return { success: true, role: nextSession.user.role }
+    } catch (error) {
+      return { success: false, error: error.message }
     }
-
-    setUser(newUser)
-    localStorage.setItem('cravedrop_user', JSON.stringify(newUser))
-    return { success: true, role }
-  }, [])
+  }, [persistSession])
 
   const logout = useCallback(() => {
-    setUser(null)
+    if (session?.token) {
+      apiRequest('/auth/logout', { method: 'POST' }).catch(() => {})
+    }
+    setSession(null)
+    clearSession()
     localStorage.removeItem('cravedrop_user')
-  }, [])
+    localStorage.removeItem('cravedrop_all_users')
+  }, [session?.token])
+
+  const refreshCurrentUser = useCallback(async () => {
+    try {
+      const data = await apiRequest('/auth/me')
+      const nextSession = { ...session, user: data.user }
+      persistSession(nextSession)
+      return { success: true, user: data.user }
+    } catch (error) {
+      clearSession()
+      setSession(null)
+      return { success: false, error: error.message }
+    }
+  }, [persistSession, session])
 
   const updateProfile = useCallback((updates) => {
-    setUser(prev => {
-      const updated = { ...prev, ...updates }
-      localStorage.setItem('cravedrop_user', JSON.stringify(updated))
+    setSession(prev => {
+      if (!prev) return prev
+      const updated = { ...prev, user: { ...prev.user, ...updates } }
+      storeSession(updated)
       return updated
     })
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, role: user?.role || null, login, signup, logout, updateProfile }}>
+    <AuthContext.Provider value={{ user, token: session?.token || null, isAuthenticated: !!user, role: user?.role || null, login, signup, logout, refreshCurrentUser, updateProfile }}>
       {children}
     </AuthContext.Provider>
   )

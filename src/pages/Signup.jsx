@@ -9,9 +9,10 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [role, setRole] = useState('customer')
+  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({ name: '', email: '', password: '' })
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
@@ -25,13 +26,17 @@ export default function Signup() {
       return
     }
 
-    const result = signup(formData.name, formData.email, formData.password, role)
+    setLoading(true)
+    const result = await signup(formData.name, formData.email, formData.password, role)
+    setLoading(false)
     if (result.success) {
       if (result.role === 'owner') {
         navigate('/owner-dashboard')
       } else {
         navigate('/')
       }
+    } else {
+      setError(result.error)
     }
   }
 
@@ -146,14 +151,15 @@ export default function Signup() {
 
             <button
               type="submit"
+              disabled={loading}
               className={`w-full justify-center py-3.5 rounded-xl font-semibold text-white transition-all duration-200 flex items-center gap-2 ${
                 role === 'owner'
                   ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg shadow-orange-200 dark:shadow-orange-900/20'
                   : 'btn-primary'
-              }`}
+              } disabled:opacity-60`}
             >
               {role === 'owner' ? <FaStore /> : <FaUserCircle />}
-              {role === 'owner' ? 'Create Owner Account' : 'Create Account'}
+              {loading ? 'Creating account...' : (role === 'owner' ? 'Create Owner Account' : 'Create Account')}
             </button>
           </form>
 
