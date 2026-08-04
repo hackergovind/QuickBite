@@ -1,282 +1,226 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { FaCreditCard, FaMapMarkerAlt, FaCheckCircle, FaLock, FaStar, FaTimes } from 'react-icons/fa'
+import { Link, useNavigate, Navigate } from 'react-router-dom'
+import { FaArrowLeft, FaMapMarkerAlt, FaCreditCard, FaMoneyBillWave, FaLock, FaCheckCircle } from 'react-icons/fa'
 import { useCart } from '../contexts/CartContext.jsx'
-import { useAuth } from '../contexts/AuthContext.jsx'
 import { useOrders } from '../contexts/OrdersContext.jsx'
-import { useReviews } from '../contexts/ReviewsContext.jsx'
-
-const PRE_BUILT_SENTENCES = [
-  "Fast delivery 🚀",
-  "Great taste 😋",
-  "Excellent packaging 📦",
-  "Hot and fresh 🔥",
-  "Polite rider 🛵"
-]
-
-function ReviewPopup({ onClose, onSubmit }) {
-  const [rating, setRating] = useState(5)
-  const [description, setDescription] = useState('')
-
-  const handleSentenceClick = (sentence) => {
-    setDescription(prev => prev ? `${prev} ${sentence}` : sentence)
-  }
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    onSubmit({ rating, description })
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark-900/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white border border-gray-200 rounded-3xl w-full max-w-md shadow-xl p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-dark-900">How was your food?</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><FaTimes /></button>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="text-center">
-            <div className="flex justify-center gap-2 mb-2">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  type="button"
-                  onClick={() => setRating(star)}
-                  className="focus:outline-none"
-                >
-                  <FaStar className={`text-4xl ${star <= rating ? 'text-yellow-400' : 'text-gray-200'}`} />
-                </button>
-              ))}
-            </div>
-            <p className="text-sm font-medium text-gray-500">Tap to rate</p>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Quick feedback</label>
-            <div className="flex flex-wrap gap-2 mb-3">
-              {PRE_BUILT_SENTENCES.map(sentence => (
-                <button
-                  key={sentence}
-                  type="button"
-                  onClick={() => handleSentenceClick(sentence)}
-                  className="px-3 py-1.5 bg-gray-50 hover:bg-primary-50 border border-gray-200 hover:border-primary-200 text-gray-600 hover:text-primary-600 rounded-full text-xs font-medium transition-colors"
-                >
-                  {sentence}
-                </button>
-              ))}
-            </div>
-            <textarea
-              required
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Tell us more about your experience..."
-              className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-dark-900 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 resize-none"
-            />
-          </div>
-          
-          <button 
-            type="submit" 
-            disabled={!description.trim()}
-            className="w-full py-3 rounded-xl btn-primary disabled:opacity-50"
-          >
-            Submit Review
-          </button>
-        </form>
-      </div>
-    </div>
-  )
-}
+import { useAuth } from '../contexts/AuthContext.jsx'
+import { useWallet } from '../contexts/WalletContext.jsx'
 
 export default function Checkout() {
   const navigate = useNavigate()
   const { cartItems, totalAmount, clearCart } = useCart()
+  const { addOrder } = useOrders()
   const { user } = useAuth()
-  const { placeOrder } = useOrders()
-  const { addReview } = useReviews()
+  const { balance } = useWallet()
+
+  const [paymentMethod, setPaymentMethod] = useState('card')
+  const [address, setAddress] = useState('123 Main St, Apt 4B')
   const [isProcessing, setIsProcessing] = useState(false)
-  const [isComplete, setIsComplete] = useState(false)
-  const [showReviewPopup, setShowReviewPopup] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [orderId, setOrderId] = useState(null)
 
-  const deliveryFee = cartItems[0]?.deliveryFee ?? 49
-  const tax = Math.round(totalAmount * 0.05)
-  const finalTotal = totalAmount + deliveryFee + tax
+  // Totals calculation
+  const subtotal = totalAmount
+  const deliveryFee = subtotal > 0 ? 2.99 : 0
+  const tax = subtotal * 0.08
+  const total = subtotal + deliveryFee + tax
 
-  // Try to derive restaurantId / restaurantName from cart items
-  const restaurantId = cartItems[0]?.restaurantId || null
-  const restaurantName = cartItems[0]?.restaurantName || 'Unknown Restaurant'
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsProcessing(true)
-    await new Promise(resolve => setTimeout(resolve, 2000))
-
-    // Save order to shared orders store so owner can see it
-    placeOrder({
-      cartItems,
-      totalAmount,
-      deliveryFee,
-      tax,
-      restaurantId,
-      restaurantName,
-      customerId: user?.id,
-      customerName: user?.name,
-      customerAddress: user?.address,
-    })
-
-    clearCart()
-    setIsProcessing(false)
-    setIsComplete(true)
-    
-    // Show review popup after a short delay
-    setTimeout(() => {
-      setShowReviewPopup(true)
-    }, 1500)
+  if (cartItems.length === 0 && !success) {
+    return <Navigate to="/cart" />
   }
 
-  if (isComplete) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center animate-fade-in relative">
-        <div className="text-center px-4 max-w-md">
-          <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce-slow">
-            <FaCheckCircle className="text-5xl text-green-500" />
-          </div>
-          <h2 className="text-3xl font-bold text-dark-900 mb-2">Order Placed!</h2>
-          <p className="text-gray-500 mb-8">Your delicious food is being prepared and will be delivered soon.</p>
-          <button onClick={() => navigate('/')} className="btn-primary">
-            Back to Home
-          </button>
-        </div>
+  const handlePlaceOrder = () => {
+    setIsProcessing(true)
+    
+    // Simulate API call and payment processing
+    setTimeout(() => {
+      const newOrder = {
+        id: `ord_${Math.random().toString(36).substr(2, 9)}`,
+        customerId: user?.id,
+        items: [...cartItems],
+        total,
+        subtotal,
+        tax,
+        deliveryFee,
+        status: 'pending',
+        date: new Date().toISOString(),
+        paymentMethod,
+        address
+      }
+      
+      addOrder(newOrder)
+      setOrderId(newOrder.id)
+      clearCart()
+      setIsProcessing(false)
+      setSuccess(true)
+    }, 2000)
+  }
 
-        {showReviewPopup && (
-          <ReviewPopup 
-            onClose={() => setShowReviewPopup(false)}
-            onSubmit={(reviewData) => {
-              addReview({
-                ...reviewData,
-                name: user?.name || 'Foodie',
-                avatar: user?.avatar || ''
-              })
-              setShowReviewPopup(false)
-            }}
-          />
-        )}
+  if (success) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-dark-950 flex flex-col items-center justify-center py-12 px-4 animate-fade-in transition-colors">
+        <div className="bg-white dark:bg-dark-900 p-8 md:p-12 rounded-3xl shadow-xl text-center max-w-md w-full border border-gray-100 dark:border-dark-800">
+          <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <FaCheckCircle className="text-4xl" />
+          </div>
+          <h1 className="text-2xl font-bold text-dark-900 dark:text-white mb-2">Order Confirmed!</h1>
+          <p className="text-gray-500 dark:text-gray-400 mb-8">Your order #{orderId?.slice(0,8).toUpperCase()} has been placed successfully and is being sent to the restaurant.</p>
+          
+          <div className="space-y-3">
+            <button onClick={() => navigate(`/order/${orderId}`)} className="btn-primary w-full justify-center py-3.5 shadow-lg shadow-primary-500/20">
+              Track Order
+            </button>
+            <button onClick={() => navigate('/')} className="w-full py-3.5 font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-800 rounded-xl transition-colors">
+              Back to Home
+            </button>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 animate-fade-in py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-dark-900 mb-8">Checkout</h1>
+    <div className="page-container py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div className="flex items-center gap-4 mb-8">
+          <button onClick={() => navigate(-1)} className="p-2 bg-white dark:bg-dark-800 rounded-full shadow-sm hover:bg-gray-50 dark:hover:bg-dark-700 transition-colors border border-gray-100 dark:border-dark-700">
+            <FaArrowLeft className="text-gray-600 dark:text-gray-300" />
+          </button>
+          <h1 className="text-2xl font-bold text-dark-900 dark:text-white">Checkout</h1>
+        </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="flex flex-col lg:flex-row gap-8">
+          
+          {/* Main Checkout Form */}
+          <div className="flex-1 space-y-6">
+            
             {/* Delivery Address */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center">
-                  <FaMapMarkerAlt className="text-primary-500" />
-                </div>
-                <h2 className="text-lg font-bold text-dark-900">Delivery Address</h2>
+            <div className="section-card">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="font-bold text-lg text-dark-900 dark:text-white flex items-center gap-2">
+                  <FaMapMarkerAlt className="text-primary-500" /> Delivery Address
+                </h2>
+                <button className="text-sm font-semibold text-primary-500 hover:underline">Change</button>
               </div>
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                <p className="font-medium text-dark-900">{user?.name}</p>
-                <p className="text-gray-600 text-sm mt-1">{user?.address || '123 Main Street, New York, NY 10001'}</p>
-                <p className="text-gray-600 text-sm">{user?.phone || '+1 (555) 123-4567'}</p>
+              <div className="bg-gray-50 dark:bg-dark-800 p-4 rounded-xl border border-gray-200 dark:border-dark-700">
+                <p className="font-semibold text-dark-900 dark:text-white">{user?.name || 'Customer'}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{address}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Leave at door</p>
               </div>
             </div>
 
             {/* Payment Method */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-secondary-50 rounded-xl flex items-center justify-center">
-                  <FaCreditCard className="text-secondary-500" />
-                </div>
-                <h2 className="text-lg font-bold text-dark-900">Payment Method</h2>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
-                    <div className="relative">
-                      <FaCreditCard className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="text"
-                        placeholder="1234 5678 9012 3456"
-                        className="input-field pl-10"
-                        defaultValue="4242 4242 4242 4242"
-                      />
+            <div className="section-card">
+              <h2 className="font-bold text-lg text-dark-900 dark:text-white mb-4">Payment Method</h2>
+              
+              <div className="space-y-3">
+                {/* Credit Card */}
+                <label className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-colors ${paymentMethod === 'card' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10' : 'border-gray-200 dark:border-dark-700 hover:border-gray-300 dark:hover:border-dark-600'}`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${paymentMethod === 'card' ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-dark-800 text-gray-500'}`}>
+                      <FaCreditCard />
+                    </div>
+                    <div>
+                      <p className={`font-semibold ${paymentMethod === 'card' ? 'text-primary-700 dark:text-primary-400' : 'text-dark-900 dark:text-white'}`}>Credit / Debit Card</p>
+                      <p className="text-xs text-gray-500">Visa ending in 4242</p>
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                    <input type="text" placeholder="MM/YY" className="input-field" defaultValue="12/26" />
+                  <input type="radio" name="payment" className="hidden" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} />
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'card' ? 'border-primary-500' : 'border-gray-300'}`}>
+                    {paymentMethod === 'card' && <div className="w-2.5 h-2.5 bg-primary-500 rounded-full" />}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">CVV</label>
-                    <input type="text" placeholder="123" className="input-field" defaultValue="123" />
-                  </div>
-                </div>
+                </label>
 
-                <div className="flex items-center gap-2 text-sm text-gray-500 mt-4">
-                  <FaLock className="text-green-500" />
-                  <span>Your payment information is secure and encrypted</span>
-                </div>
-              </form>
+                {/* Wallet */}
+                <label className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-colors ${paymentMethod === 'wallet' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10' : 'border-gray-200 dark:border-dark-700 hover:border-gray-300 dark:hover:border-dark-600'}`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${paymentMethod === 'wallet' ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-dark-800 text-gray-500'}`}>
+                      <span className="text-xl">💰</span>
+                    </div>
+                    <div>
+                      <p className={`font-semibold ${paymentMethod === 'wallet' ? 'text-primary-700 dark:text-primary-400' : 'text-dark-900 dark:text-white'}`}>QuickBite Wallet</p>
+                      <p className="text-xs text-gray-500">Available: ${balance.toFixed(2)}</p>
+                    </div>
+                  </div>
+                  <input type="radio" name="payment" className="hidden" disabled={balance < total} checked={paymentMethod === 'wallet'} onChange={() => setPaymentMethod('wallet')} />
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'wallet' ? 'border-primary-500' : 'border-gray-300'}`}>
+                    {paymentMethod === 'wallet' && <div className="w-2.5 h-2.5 bg-primary-500 rounded-full" />}
+                  </div>
+                </label>
+
+                {/* Cash on Delivery */}
+                <label className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-colors ${paymentMethod === 'cash' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10' : 'border-gray-200 dark:border-dark-700 hover:border-gray-300 dark:hover:border-dark-600'}`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${paymentMethod === 'cash' ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-dark-800 text-gray-500'}`}>
+                      <FaMoneyBillWave />
+                    </div>
+                    <div>
+                      <p className={`font-semibold ${paymentMethod === 'cash' ? 'text-primary-700 dark:text-primary-400' : 'text-dark-900 dark:text-white'}`}>Cash on Delivery</p>
+                      <p className="text-xs text-gray-500">Pay when you receive</p>
+                    </div>
+                  </div>
+                  <input type="radio" name="payment" className="hidden" checked={paymentMethod === 'cash'} onChange={() => setPaymentMethod('cash')} />
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'cash' ? 'border-primary-500' : 'border-gray-300'}`}>
+                    {paymentMethod === 'cash' && <div className="w-2.5 h-2.5 bg-primary-500 rounded-full" />}
+                  </div>
+                </label>
+              </div>
             </div>
+
           </div>
 
-          {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-24">
-              <h2 className="text-lg font-bold text-dark-900 mb-4">Order Summary</h2>
-
-              <div className="space-y-3 mb-4 max-h-48 overflow-y-auto">
+          {/* Order Summary Sidebar */}
+          <div className="w-full lg:w-96 shrink-0">
+            <div className="section-card sticky top-24 space-y-6">
+              <h2 className="font-bold text-lg text-dark-900 dark:text-white mb-4">Order Items</h2>
+              
+              <div className="space-y-4 max-h-64 overflow-y-auto hide-scrollbar">
                 {cartItems.map(item => (
-                  <div key={item.id} className="flex justify-between text-sm">
-                    <span className="text-gray-600">{item.quantity}x {item.name}</span>
-                    <span className="font-medium text-dark-900">₹{(item.price * item.quantity).toFixed(0)}</span>
+                  <div key={item.id} className="flex gap-3 text-sm">
+                    <span className="font-bold text-primary-500 w-6">{item.quantity}x</span>
+                    <div className="flex-1">
+                      <p className="font-medium text-dark-900 dark:text-white line-clamp-1">{item.displayName || item.name}</p>
+                    </div>
+                    <span className="font-bold text-dark-900 dark:text-white">${(item.price * item.quantity).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="border-t border-gray-100 pt-4 space-y-2 mb-6">
-                <div className="flex justify-between text-sm text-gray-600">
+              <div className="border-t border-gray-100 dark:border-dark-700 pt-4 space-y-3 text-sm">
+                <div className="flex justify-between text-gray-600 dark:text-gray-400">
                   <span>Subtotal</span>
-                  <span>₹{totalAmount.toFixed(0)}</span>
+                  <span className="font-medium text-dark-900 dark:text-white">${subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Delivery</span>
-                  <span>{deliveryFee === 0 ? 'Free' : `₹${deliveryFee}`}</span>
+                <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                  <span>Delivery Fee</span>
+                  <span className="font-medium text-dark-900 dark:text-white">${deliveryFee.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Tax (5%)</span>
-                  <span>₹{tax}</span>
+                <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                  <span>Tax</span>
+                  <span className="font-medium text-dark-900 dark:text-white">${tax.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between font-bold text-dark-900 pt-2 border-t border-gray-100">
-                  <span>Total</span>
-                  <span className="text-xl text-primary-600">₹{finalTotal}</span>
+                <div className="border-t border-gray-100 dark:border-dark-700 pt-3 mt-3 flex justify-between items-center">
+                  <span className="text-base font-bold text-dark-900 dark:text-white">Total</span>
+                  <span className="text-2xl font-black text-primary-500">${total.toFixed(2)}</span>
                 </div>
               </div>
 
-              <button
-                onClick={handleSubmit}
-                disabled={isProcessing || cartItems.length === 0}
-                className="btn-primary w-full justify-center text-lg py-4 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+              <button 
+                onClick={handlePlaceOrder} 
+                disabled={isProcessing}
+                className="btn-primary w-full justify-center py-4 text-lg relative overflow-hidden group shadow-lg shadow-primary-500/20"
               >
-                {isProcessing ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  `Pay ₹${finalTotal}`
-                )}
+                <div className={`absolute inset-0 bg-white/20 -translate-x-full ${isProcessing ? 'animate-[shimmer_1.5s_infinite]' : 'group-hover:translate-x-full transition-transform duration-700 ease-in-out'}`} />
+                {isProcessing ? 'Processing...' : `Pay $${total.toFixed(2)}`}
               </button>
+              
+              <p className="text-xs text-center text-gray-500 flex items-center justify-center gap-1">
+                <FaLock /> Secure Checkout
+              </p>
             </div>
           </div>
+
         </div>
       </div>
     </div>

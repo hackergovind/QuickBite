@@ -1,211 +1,229 @@
 import React, { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { FaStar, FaClock, FaMotorcycle, FaArrowLeft, FaMapMarkerAlt, FaPhone, FaHeart } from 'react-icons/fa'
-import FoodCard from '../components/FoodCard.jsx'
+import { FaStar, FaClock, FaMotorcycle, FaArrowLeft, FaMapMarkerAlt, FaPhone, FaHeart, FaShare } from 'react-icons/fa'
 import { restaurants, foods } from '../data/dummyData.js'
+import FoodCard from '../components/FoodCard.jsx'
+import ReviewCard from '../components/ReviewCard.jsx'
+import ReviewForm from '../components/ReviewForm.jsx'
+import { useAuth } from '../contexts/AuthContext.jsx'
+import { useFavorites } from '../contexts/FavoritesContext.jsx'
+import { useReviews } from '../contexts/ReviewsContext.jsx'
 import { useRestaurantOwner } from '../contexts/RestaurantContext.jsx'
 
 export default function RestaurantDetails() {
   const { id } = useParams()
-  const [activeTab, setActiveTab] = useState('all')
-  const [isLiked, setIsLiked] = useState(false)
-  const [sortBy, setSortBy] = useState('recommended')
-  const [showNonVeg, setShowNonVeg] = useState(true)
+  const { isAuthenticated } = useAuth()
+  const { isFavoriteRestaurant, toggleFavoriteRestaurant } = useFavorites()
+  const { getReviewsByRestaurant } = useReviews()
   const { ownerRestaurants } = useRestaurantOwner()
 
-  // Merge static + owner restaurants for lookup
+  const [activeTab, setActiveTab] = useState('menu')
+  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [isVegOnly, setIsVegOnly] = useState(false)
+
+  // Merge dummy restaurants and owner restaurants
   const allRestaurants = [...restaurants, ...ownerRestaurants]
-  const allFoods = [...foods, ...ownerRestaurants.flatMap(r => r.dishes || [])]
-
   const restaurant = allRestaurants.find(r => r.id === id)
-  const restaurantFoods = allFoods.filter(f => f.restaurantId === id)
-
-  const foodCategories = ['all', ...new Set(restaurantFoods.map(f => f.category))]
-
-  // Apply filters and sorting
-  let filteredFoods = activeTab === 'all'
-    ? restaurantFoods
-    : restaurantFoods.filter(f => f.category === activeTab)
-
-  // Veg / Non-Veg filter
-  if (!showNonVeg) {
-    filteredFoods = filteredFoods.filter(f => f.isVeg)
-  }
-
-  // Sorting
-  filteredFoods = [...filteredFoods].sort((a, b) => {
-    if (sortBy === 'price-low') return a.price - b.price
-    if (sortBy === 'price-high') return b.price - a.price
-    if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0)
-    return 0 // recommended (default)
-  })
 
   if (!restaurant) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-dark-900 mb-2">Restaurant not found</h2>
-          <Link to="/restaurants" className="text-primary-500 hover:underline">Back to restaurants</Link>
-        </div>
+      <div className="page-container py-12 text-center">
+        <h1 className="text-2xl font-bold mb-4">Restaurant not found</h1>
+        <Link to="/restaurants" className="btn-primary">Browse Restaurants</Link>
       </div>
     )
   }
 
+  const reviews = getReviewsByRestaurant(id)
+  const isFav = isFavoriteRestaurant(id)
+  
+  // Menu logic
+  const menu = restaurant.dishes || foods.filter(f => f.restaurantId === id)
+  const categories = ['all', ...new Set(menu.map(f => f.category || 'other'))]
+
+  let filteredMenu = menu
+  if (selectedCategory !== 'all') filteredMenu = filteredMenu.filter(f => f.category === selectedCategory)
+  if (isVegOnly) filteredMenu = filteredMenu.filter(f => f.isVeg)
+
   return (
-    <div className="min-h-screen bg-gray-50 animate-fade-in">
-      {/* Hero Image */}
-      <div className="relative h-64 sm:h-80 lg:h-96">
-        <img
-          src={restaurant.image}
-          alt={restaurant.name}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+    <div className="page-container pb-12">
+      {/* Hero Header */}
+      <div className="relative h-64 md:h-80 w-full overflow-hidden">
+        <img src={restaurant.image} alt={restaurant.name} className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-dark-900/90 via-dark-900/40 to-transparent" />
         
-        <Link
-          to="/restaurants"
-          className="absolute top-4 left-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center hover:bg-white transition-colors shadow-lg"
-        >
-          <FaArrowLeft className="text-dark-900" />
-        </Link>
+        {/* Top bar */}
+        <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
+          <Link to="/restaurants" className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-colors">
+            <FaArrowLeft />
+          </Link>
+          <div className="flex gap-2">
+            <button className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-colors">
+              <FaShare />
+            </button>
+            <button 
+              onClick={() => toggleFavoriteRestaurant(id)} 
+              className={`w-10 h-10 backdrop-blur-md rounded-full flex items-center justify-center transition-colors shadow-lg ${isFav ? 'bg-red-500 text-white' : 'bg-white/20 text-white hover:bg-white/40'}`}
+            >
+              <FaHeart />
+            </button>
+          </div>
+        </div>
 
-        <button
-          onClick={() => setIsLiked(!isLiked)}
-          className="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center hover:bg-white transition-colors shadow-lg"
-        >
-          <FaHeart className={isLiked ? 'text-red-500' : 'text-gray-400'} />
-        </button>
-
-        <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
-          <div className="max-w-7xl mx-auto">
-            {restaurant.badge && (
-              <span className="inline-block bg-primary-500 text-white text-xs font-bold px-3 py-1 rounded-full mb-3">
-                {restaurant.badge}
-              </span>
-            )}
-            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">{restaurant.name}</h1>
-            <p className="text-white/80 mb-4">{restaurant.cuisine}</p>
-            
-            <div className="flex flex-wrap items-center gap-4 text-white/90 text-sm">
-              <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-lg">
-                <FaStar className="text-yellow-400" />
-                <span className="font-bold">{restaurant.rating}</span>
-                <span className="text-white/70">({restaurant.reviewCount})</span>
-              </div>
-              <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-lg">
-                <FaClock />
-                <span>{restaurant.deliveryTime}</span>
-              </div>
-              <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-lg">
-                <FaMotorcycle />
-                <span>{restaurant.deliveryFee === 0 ? 'Free Delivery' : `$${restaurant.deliveryFee}`}</span>
-              </div>
+        {/* Restaurant Info */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 z-10 text-white max-w-7xl mx-auto">
+          {!restaurant.isOpen && (
+            <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full mb-3 inline-block">
+              Currently Closed
+            </span>
+          )}
+          <h1 className="text-3xl md:text-5xl font-black mb-2">{restaurant.name}</h1>
+          <p className="text-gray-200 text-sm md:text-base mb-4">{restaurant.cuisine} • {restaurant.tags?.join(' • ') || 'Premium Quality'}</p>
+          
+          <div className="flex flex-wrap items-center gap-4 text-sm font-medium">
+            <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-lg">
+              <FaStar className="text-yellow-400" />
+              <span>{restaurant.rating} ({restaurant.reviews || reviews.length}+ ratings)</span>
+            </div>
+            <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-lg">
+              <FaClock />
+              <span>{restaurant.deliveryTime}</span>
+            </div>
+            <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-lg">
+              <FaMapMarkerAlt />
+              <span>2.4 km away</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Info Cards */}
-        <div className="grid sm:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center">
-              <FaMapMarkerAlt className="text-primary-500" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">Address</p>
-              <p className="text-sm font-medium text-dark-900">{restaurant.address || '123 Food Street, NY'}</p>
-            </div>
-          </div>
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
-            <div className="w-10 h-10 bg-secondary-50 rounded-xl flex items-center justify-center">
-              <FaClock className="text-secondary-500" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">Opening Hours</p>
-              <p className="text-sm font-medium text-dark-900">10:00 AM - 11:00 PM</p>
-            </div>
-          </div>
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
-              <FaPhone className="text-purple-500" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">Contact</p>
-              <p className="text-sm font-medium text-dark-900">{restaurant.phone || '+1 (555) 123-4567'}</p>
-            </div>
-          </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        
+        {/* Main Tabs */}
+        <div className="flex border-b border-gray-200 dark:border-dark-700 mb-8 sticky top-16 bg-gray-50/90 dark:bg-dark-950/90 backdrop-blur z-30 pt-4">
+          {['menu', 'reviews', 'gallery'].map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`pb-3 px-6 text-sm font-bold capitalize transition-colors relative ${activeTab === tab ? 'text-primary-500' : 'text-gray-500 hover:text-dark-900 dark:hover:text-white'}`}
+            >
+              {tab}
+              {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary-500 rounded-t-lg" />}
+            </button>
+          ))}
         </div>
 
-        {/* Menu Tabs & Filters */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
-          {/* Categories */}
-          <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2 lg:pb-0">
-            {foodCategories.map(cat => (
-              <button
-                key={cat}
-                onClick={() => setActiveTab(cat)}
-                className={`px-5 py-2.5 rounded-xl font-medium text-sm capitalize whitespace-nowrap transition-all duration-300 ${
-                  activeTab === cat
-                    ? 'bg-primary-500 text-white shadow-lg shadow-primary-200'
-                    : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-
-          {/* Filters */}
-          <div className="flex items-center gap-4">
-            {/* Veg / Non-Veg Toggle */}
-            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
-              <span className={`text-sm font-bold ${!showNonVeg ? 'text-green-600' : 'text-gray-400'}`}>Veg</span>
-              <button
-                onClick={() => setShowNonVeg(!showNonVeg)}
-                className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
-                  showNonVeg ? 'bg-red-500' : 'bg-green-500'
-                }`}
-              >
-                <div
-                  className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 ${
-                    showNonVeg ? 'left-7' : 'left-1'
-                  }`}
-                />
-              </button>
-              <span className={`text-sm font-bold ${showNonVeg ? 'text-red-500' : 'text-gray-400'}`}>Non-Veg</span>
+        {/* MENU TAB */}
+        {activeTab === 'menu' && (
+          <div className="animate-fade-in">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div className="flex overflow-x-auto hide-scrollbar gap-2 w-full sm:w-auto pb-2 sm:pb-0">
+                {categories.map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-4 py-2 rounded-full text-sm font-semibold capitalize whitespace-nowrap transition-colors border ${
+                      selectedCategory === cat
+                        ? 'bg-dark-900 dark:bg-white text-white dark:text-dark-900 border-transparent'
+                        : 'bg-white dark:bg-dark-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-dark-700 hover:border-gray-400'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Veg Only</span>
+                <button
+                  onClick={() => setIsVegOnly(!isVegOnly)}
+                  className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${isVegOnly ? 'bg-green-500' : 'bg-gray-300 dark:bg-dark-600'}`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 ${isVegOnly ? 'translate-x-7' : 'translate-x-1'}`} />
+                </button>
+              </div>
             </div>
 
-            {/* Sort Dropdown */}
-            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
-              <span className="text-gray-400 text-sm">Sort by:</span>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="text-sm font-medium text-dark-900 bg-transparent border-none outline-none cursor-pointer"
-              >
-                <option value="recommended">Recommended</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-                <option value="rating">Top Rated</option>
-              </select>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredMenu.map(food => (
+                <FoodCard key={food.id} food={food} />
+              ))}
             </div>
-          </div>
-        </div>
-
-        {/* Food Grid */}
-        {filteredFoods.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredFoods.map(food => (
-              <FoodCard key={food.id} food={food} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-16">
-            <p className="text-gray-500">No items found in this category</p>
+            {filteredMenu.length === 0 && (
+              <p className="text-center text-gray-500 py-12">No items found matching these filters.</p>
+            )}
           </div>
         )}
+
+        {/* REVIEWS TAB */}
+        {activeTab === 'reviews' && (
+          <div className="animate-fade-in max-w-3xl mx-auto space-y-8">
+            <div className="section-card flex flex-col md:flex-row items-center gap-8">
+              <div className="text-center">
+                <p className="text-6xl font-black text-dark-900 dark:text-white">{restaurant.rating}</p>
+                <div className="flex items-center justify-center gap-1 my-2">
+                  {[1,2,3,4,5].map(i => <FaStar key={i} className={i <= restaurant.rating ? 'text-yellow-400 text-lg' : 'text-gray-200 dark:text-dark-700 text-lg'} />)}
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{reviews.length} reviews</p>
+              </div>
+              <div className="flex-1 w-full space-y-2">
+                {[5,4,3,2,1].map(stars => {
+                  const count = reviews.filter(r => Math.round(r.rating) === stars).length
+                  const pct = reviews.length ? (count / reviews.length) * 100 : 0
+                  return (
+                    <div key={stars} className="flex items-center gap-3 text-sm font-medium">
+                      <span className="w-4">{stars}</span>
+                      <FaStar className="text-yellow-400 text-xs shrink-0" />
+                      <div className="flex-1 h-2 bg-gray-100 dark:bg-dark-700 rounded-full overflow-hidden">
+                        <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="w-8 text-right text-gray-500">{count}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-dark-900 dark:text-white border-b border-gray-100 dark:border-dark-700 pb-2">User Reviews</h3>
+              {reviews.map(r => (
+                <ReviewCard key={r.id} review={r} />
+              ))}
+              {reviews.length === 0 && <p className="text-gray-500 text-sm">No reviews yet.</p>}
+            </div>
+
+            <div className="pt-6 border-t border-gray-100 dark:border-dark-700">
+              {isAuthenticated ? (
+                <ReviewForm restaurantId={id} />
+              ) : (
+                <div className="bg-gray-50 dark:bg-dark-800 p-6 rounded-2xl text-center border border-gray-100 dark:border-dark-700">
+                  <p className="font-semibold text-dark-900 dark:text-white mb-3">Want to leave a review?</p>
+                  <Link to="/login" className="btn-primary">Log In to Review</Link>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* GALLERY TAB */}
+        {activeTab === 'gallery' && (
+          <div className="animate-fade-in">
+            {restaurant.gallery?.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {restaurant.gallery.map((img, i) => (
+                  <div key={i} className="aspect-square rounded-2xl overflow-hidden cursor-pointer group">
+                    <img src={img} alt={`Gallery ${i}`} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20 bg-white dark:bg-dark-800 rounded-3xl border border-gray-100 dark:border-dark-700">
+                <span className="text-4xl">📸</span>
+                <h3 className="font-bold text-dark-900 dark:text-white mt-4">No photos yet</h3>
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
     </div>
   )

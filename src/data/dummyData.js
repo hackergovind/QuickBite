@@ -11,6 +11,38 @@ export const categories = [
   { id: 'italian', name: 'Italian', icon: '🍝' },
 ]
 
+export const moodCategories = [
+  { id: 'comfort', label: 'Comfort Food', emoji: '🍜', color: 'from-orange-400 to-red-400', foodCategories: ['indian', 'chinese'] },
+  { id: 'healthy', label: 'Healthy', emoji: '🥗', color: 'from-green-400 to-emerald-500', foodCategories: ['healthy'] },
+  { id: 'party', label: 'Party Vibes', emoji: '🎉', color: 'from-purple-400 to-pink-500', foodCategories: ['pizza', 'burger'] },
+  { id: 'date', label: 'Date Night', emoji: '❤️', color: 'from-rose-400 to-pink-500', foodCategories: ['sushi', 'italian'] },
+  { id: 'dessert', label: 'Sweet Tooth', emoji: '🍰', color: 'from-yellow-400 to-orange-400', foodCategories: ['dessert'] },
+  { id: 'spicy', label: 'Spicy Cravings', emoji: '🌶️', color: 'from-red-500 to-orange-500', foodCategories: ['mexican', 'indian'] },
+]
+
+export const coupons = [
+  { code: 'SAVE20', discount: 20, type: 'percent', minOrder: 15, description: '20% off on orders above $15' },
+  { code: 'FIRST50', discount: 50, type: 'percent', minOrder: 0, description: '50% off your first order!' },
+  { code: 'WELCOME10', discount: 10, type: 'flat', minOrder: 10, description: '$10 flat off on any order' },
+  { code: 'FREESHIP', discount: 3, type: 'delivery', minOrder: 20, description: 'Free delivery on orders above $20' },
+  { code: 'PIZZA30', discount: 30, type: 'percent', minOrder: 12, description: '30% off all pizza orders' },
+]
+
+export const deliveryPartners = [
+  { id: 'dp1', name: 'Arjun Sharma', photo: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face', rating: 4.8, trips: 1234, vehicle: 'Bike • MH 01 AB 1234', phone: '+91 98765 43210' },
+  { id: 'dp2', name: 'Rahul Verma', photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face', rating: 4.6, trips: 892, vehicle: 'Scooter • DL 05 CD 5678', phone: '+91 87654 32109' },
+  { id: 'dp3', name: 'Priya Singh', photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face', rating: 4.9, trips: 2103, vehicle: 'Bike • KA 01 EF 9012', phone: '+91 76543 21098' },
+  { id: 'dp4', name: 'Amit Kumar', photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face', rating: 4.5, trips: 567, vehicle: 'Cycle • MH 02 GH 3456', phone: '+91 65432 10987' },
+]
+
+export const mockReviews = [
+  { id: 'r1', restaurantId: '1', userId: 'u1', userName: 'Sarah M.', userAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&h=60&fit=crop&crop=face', rating: 5, comment: 'Amazing burgers! The Classic Cheeseburger is to die for. Super fast delivery too!', date: new Date(Date.now() - 2 * 86400000).toISOString(), likes: 12, ownerReply: null },
+  { id: 'r2', restaurantId: '1', userId: 'u2', userName: 'James R.', userAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face', rating: 4, comment: 'Great taste, arrived hot and fresh. Packaging could be better.', date: new Date(Date.now() - 5 * 86400000).toISOString(), likes: 7, ownerReply: 'Thank you James! We\'re working on better packaging. Come back soon! 😊' },
+  { id: 'r3', restaurantId: '2', userId: 'u3', userName: 'Emily C.', userAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&crop=face', rating: 5, comment: 'Best pizza in town! The Margherita is perfect — crispy crust, fresh toppings.', date: new Date(Date.now() - 1 * 86400000).toISOString(), likes: 18, ownerReply: null },
+  { id: 'r4', restaurantId: '3', userId: 'u4', userName: 'Michael B.', userAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=60&h=60&fit=crop&crop=face', rating: 5, comment: 'Sakura Sushi is absolutely premium. Dragon Roll was chef\'s kiss! Worth every penny.', date: new Date(Date.now() - 3 * 86400000).toISOString(), likes: 24, ownerReply: 'Arigatou gozaimasu! 🙏 We\'re so glad you enjoyed your meal.' },
+  { id: 'r5', restaurantId: '4', userId: 'u5', userName: 'Neha P.', userAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=60&h=60&fit=crop&crop=face', rating: 4, comment: 'Butter chicken was rich and creamy. Delivery was slightly delayed but worth the wait.', date: new Date(Date.now() - 4 * 86400000).toISOString(), likes: 9, ownerReply: null },
+]
+
 export const restaurants = [
   {
     id: '1',
@@ -23,7 +55,15 @@ export const restaurants = [
     minOrder: 12.00,
     image: 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=600&h=400&fit=crop',
     badge: 'Popular',
-    category: 'burger'
+    category: 'burger',
+    isOpen: true,
+    priceRange: '$$',
+    gallery: [
+      'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1550317138-10000687a72b?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=600&h=400&fit=crop',
+    ]
   },
   {
     id: '2',
@@ -36,7 +76,15 @@ export const restaurants = [
     minOrder: 15.00,
     image: 'https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=600&h=400&fit=crop',
     badge: 'Top Rated',
-    category: 'pizza'
+    category: 'pizza',
+    isOpen: true,
+    priceRange: '$$',
+    gallery: [
+      'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&h=400&fit=crop',
+    ]
   },
   {
     id: '3',
@@ -49,7 +97,15 @@ export const restaurants = [
     minOrder: 20.00,
     image: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600&h=400&fit=crop',
     badge: 'Premium',
-    category: 'sushi'
+    category: 'sushi',
+    isOpen: true,
+    priceRange: '$$$',
+    gallery: [
+      'https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1553621042-f6e147245754?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1559410545-0bdcd187e0a6?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1534482421-64566f976cfa?w=600&h=400&fit=crop',
+    ]
   },
   {
     id: '4',
@@ -62,7 +118,15 @@ export const restaurants = [
     minOrder: 18.00,
     image: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=600&h=400&fit=crop',
     badge: 'Free Delivery',
-    category: 'indian'
+    category: 'indian',
+    isOpen: true,
+    priceRange: '$$',
+    gallery: [
+      'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1567188040759-fb8a883dc6d6?w=600&h=400&fit=crop',
+    ]
   },
   {
     id: '5',
@@ -75,7 +139,15 @@ export const restaurants = [
     minOrder: 10.00,
     image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&h=400&fit=crop',
     badge: 'Healthy',
-    category: 'healthy'
+    category: 'healthy',
+    isOpen: true,
+    priceRange: '$$',
+    gallery: [
+      'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1505576399279-565b52d4ac71?w=600&h=400&fit=crop',
+    ]
   },
   {
     id: '6',
@@ -88,7 +160,15 @@ export const restaurants = [
     minOrder: 14.00,
     image: 'https://images.unsplash.com/photo-1525755662778-95d057db2fa3?w=600&h=400&fit=crop',
     badge: null,
-    category: 'chinese'
+    category: 'chinese',
+    isOpen: false,
+    opensAt: '11:00 AM',
+    priceRange: '$',
+    gallery: [
+      'https://images.unsplash.com/photo-1525755662778-95d057db2fa3?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=600&h=400&fit=crop',
+    ]
   },
   {
     id: '7',
@@ -101,7 +181,14 @@ export const restaurants = [
     minOrder: 12.00,
     image: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=600&h=400&fit=crop',
     badge: 'Spicy',
-    category: 'mexican'
+    category: 'mexican',
+    isOpen: true,
+    priceRange: '$',
+    gallery: [
+      'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1613514785819-5d32bbfa814b?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=600&h=400&fit=crop',
+    ]
   },
   {
     id: '8',
@@ -114,7 +201,14 @@ export const restaurants = [
     minOrder: 8.00,
     image: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=600&h=400&fit=crop',
     badge: 'Sweet',
-    category: 'dessert'
+    category: 'dessert',
+    isOpen: true,
+    priceRange: '$$',
+    gallery: [
+      'https://images.unsplash.com/photo-1624353365286-3f8d62daad51?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=600&h=400&fit=crop',
+    ]
   }
 ]
 
@@ -129,8 +223,15 @@ export const foods = [
     category: 'burger',
     rating: 4.6,
     calories: 650,
+    protein: 35,
+    carbs: 48,
+    fat: 32,
+    allergens: ['Gluten', 'Dairy', 'Sesame'],
     isVeg: false,
-    tags: ['Bestseller']
+    tags: ['Bestseller'],
+    availability: 'available',
+    stockLeft: null,
+    customizable: true,
   },
   {
     id: 'f2',
@@ -142,8 +243,15 @@ export const foods = [
     category: 'burger',
     rating: 4.8,
     calories: 920,
+    protein: 52,
+    carbs: 55,
+    fat: 48,
+    allergens: ['Gluten', 'Dairy'],
     isVeg: false,
-    tags: ['Popular']
+    tags: ['Popular'],
+    availability: 'limited',
+    stockLeft: 3,
+    customizable: true,
   },
   {
     id: 'f3',
@@ -155,8 +263,15 @@ export const foods = [
     category: 'pizza',
     rating: 4.5,
     calories: 780,
+    protein: 28,
+    carbs: 92,
+    fat: 22,
+    allergens: ['Gluten', 'Dairy'],
     isVeg: true,
-    tags: ['Classic']
+    tags: ['Classic'],
+    availability: 'available',
+    stockLeft: null,
+    customizable: true,
   },
   {
     id: 'f4',
@@ -168,8 +283,15 @@ export const foods = [
     category: 'pizza',
     rating: 4.7,
     calories: 950,
+    protein: 42,
+    carbs: 88,
+    fat: 38,
+    allergens: ['Gluten', 'Dairy'],
     isVeg: false,
-    tags: ['Bestseller']
+    tags: ['Bestseller'],
+    availability: 'sold_out',
+    stockLeft: 0,
+    customizable: false,
   },
   {
     id: 'f5',
@@ -181,8 +303,15 @@ export const foods = [
     category: 'sushi',
     rating: 4.9,
     calories: 420,
+    protein: 22,
+    carbs: 48,
+    fat: 14,
+    allergens: ['Fish', 'Gluten', 'Shellfish'],
     isVeg: false,
-    tags: ['Chef Special']
+    tags: ['Chef Special'],
+    availability: 'available',
+    stockLeft: null,
+    customizable: false,
   },
   {
     id: 'f6',
@@ -194,8 +323,15 @@ export const foods = [
     category: 'sushi',
     rating: 4.8,
     calories: 380,
+    protein: 28,
+    carbs: 42,
+    fat: 10,
+    allergens: ['Fish', 'Soy'],
     isVeg: false,
-    tags: ['Fresh']
+    tags: ['Fresh'],
+    availability: 'available',
+    stockLeft: null,
+    customizable: false,
   },
   {
     id: 'f7',
@@ -207,8 +343,15 @@ export const foods = [
     category: 'indian',
     rating: 4.7,
     calories: 580,
+    protein: 38,
+    carbs: 22,
+    fat: 34,
+    allergens: ['Dairy'],
     isVeg: false,
-    tags: ['Bestseller']
+    tags: ['Bestseller'],
+    availability: 'available',
+    stockLeft: null,
+    customizable: true,
   },
   {
     id: 'f8',
@@ -220,8 +363,15 @@ export const foods = [
     category: 'indian',
     rating: 4.5,
     calories: 520,
+    protein: 24,
+    carbs: 28,
+    fat: 28,
+    allergens: ['Dairy'],
     isVeg: true,
-    tags: ['Vegetarian']
+    tags: ['Vegetarian'],
+    availability: 'available',
+    stockLeft: null,
+    customizable: true,
   },
   {
     id: 'f9',
@@ -233,8 +383,15 @@ export const foods = [
     category: 'healthy',
     rating: 4.6,
     calories: 420,
+    protein: 18,
+    carbs: 52,
+    fat: 16,
+    allergens: ['Sesame'],
     isVeg: true,
-    tags: ['Vegan']
+    tags: ['Vegan'],
+    availability: 'available',
+    stockLeft: null,
+    customizable: false,
   },
   {
     id: 'f10',
@@ -246,8 +403,15 @@ export const foods = [
     category: 'healthy',
     rating: 4.4,
     calories: 480,
+    protein: 42,
+    carbs: 18,
+    fat: 22,
+    allergens: ['Gluten', 'Dairy', 'Egg'],
     isVeg: false,
-    tags: ['Protein Rich']
+    tags: ['Protein Rich'],
+    availability: 'available',
+    stockLeft: null,
+    customizable: false,
   },
   {
     id: 'f11',
@@ -259,8 +423,15 @@ export const foods = [
     category: 'chinese',
     rating: 4.3,
     calories: 550,
+    protein: 36,
+    carbs: 32,
+    fat: 28,
+    allergens: ['Peanuts', 'Soy'],
     isVeg: false,
-    tags: ['Spicy']
+    tags: ['Spicy'],
+    availability: 'available',
+    stockLeft: null,
+    customizable: true,
   },
   {
     id: 'f12',
@@ -272,8 +443,15 @@ export const foods = [
     category: 'chinese',
     rating: 4.5,
     calories: 320,
+    protein: 12,
+    carbs: 48,
+    fat: 8,
+    allergens: ['Gluten', 'Soy'],
     isVeg: true,
-    tags: ['Steamed']
+    tags: ['Steamed'],
+    availability: 'available',
+    stockLeft: null,
+    customizable: false,
   },
   {
     id: 'f13',
@@ -285,8 +463,15 @@ export const foods = [
     category: 'mexican',
     rating: 4.6,
     calories: 480,
+    protein: 32,
+    carbs: 38,
+    fat: 18,
+    allergens: ['Gluten'],
     isVeg: false,
-    tags: ['Authentic']
+    tags: ['Authentic'],
+    availability: 'available',
+    stockLeft: null,
+    customizable: true,
   },
   {
     id: 'f14',
@@ -298,8 +483,15 @@ export const foods = [
     category: 'mexican',
     rating: 4.4,
     calories: 380,
+    protein: 6,
+    carbs: 42,
+    fat: 22,
+    allergens: [],
     isVeg: true,
-    tags: ['Snack']
+    tags: ['Snack'],
+    availability: 'available',
+    stockLeft: null,
+    customizable: false,
   },
   {
     id: 'f15',
@@ -311,8 +503,15 @@ export const foods = [
     category: 'dessert',
     rating: 4.9,
     calories: 620,
+    protein: 8,
+    carbs: 72,
+    fat: 28,
+    allergens: ['Gluten', 'Dairy', 'Egg'],
     isVeg: true,
-    tags: ['Must Try']
+    tags: ['Must Try'],
+    availability: 'limited',
+    stockLeft: 2,
+    customizable: false,
   },
   {
     id: 'f16',
@@ -324,8 +523,15 @@ export const foods = [
     category: 'dessert',
     rating: 4.7,
     calories: 540,
+    protein: 10,
+    carbs: 58,
+    fat: 30,
+    allergens: ['Gluten', 'Dairy', 'Egg'],
     isVeg: true,
-    tags: ['Creamy']
+    tags: ['Creamy'],
+    availability: 'available',
+    stockLeft: null,
+    customizable: false,
   }
 ]
 
@@ -335,7 +541,7 @@ export const testimonials = [
     name: 'Sarah Mitchell',
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face',
     rating: 5,
-    text: 'CraveDrop has completely changed how I order food. The delivery is always on time and the app is so easy to use!'
+    text: 'QuickBite has completely changed how I order food. The delivery is always on time and the app is so easy to use!'
   },
   {
     id: 2,

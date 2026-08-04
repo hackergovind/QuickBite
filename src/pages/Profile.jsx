@@ -1,173 +1,265 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate, Navigate } from 'react-router-dom'
-import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaEdit, FaSave, FaSignOutAlt, FaShoppingBag, FaHeart } from 'react-icons/fa'
+import React, { useState } from 'react'
+import { Link, useNavigate, Navigate } from 'react-router-dom'
+import { FaUser, FaShoppingBag, FaHeart, FaMapMarkerAlt, FaWallet, FaCog, FaSignOutAlt, FaStar, FaEdit } from 'react-icons/fa'
 import { useAuth } from '../contexts/AuthContext.jsx'
+import { useOrders } from '../contexts/OrdersContext.jsx'
+import { useFavorites } from '../contexts/FavoritesContext.jsx'
+import { useWallet } from '../contexts/WalletContext.jsx'
+import { useCart } from '../contexts/CartContext.jsx'
+import { foods, restaurants } from '../data/dummyData.js'
+import AddressManager from '../components/AddressManager.jsx'
+import WalletCard from '../components/WalletCard.jsx'
+import DarkModeToggle from '../components/DarkModeToggle.jsx'
+import FoodCard from '../components/FoodCard.jsx'
+import RestaurantCard from '../components/RestaurantCard.jsx'
 
 export default function Profile() {
+  const { user, isAuthenticated, logout } = useAuth()
+  const { orders } = useOrders()
+  const { favFoods, favRestaurants } = useFavorites()
+  const { tier, points } = useWallet()
+  const { addToCart } = useCart()
   const navigate = useNavigate()
-  const { user, role, logout, updateProfile } = useAuth()
-  const [isEditing, setIsEditing] = useState(false)
-  const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    address: user?.address || ''
-  })
 
-  // Restaurant owners should not access the customer profile page
-  if (role === 'owner') {
-    return <Navigate to="/owner-dashboard" replace />
+  const [activeTab, setActiveTab] = useState('profile')
+  const [editing, setEditing] = useState(false)
+
+  if (!isAuthenticated) return <Navigate to="/login" />
+
+  const userOrders = orders.filter(o => o.customerId === user?.id)
+  const totalSpent = userOrders.reduce((sum, o) => sum + o.total, 0)
+
+  const favoriteFoods = foods.filter(f => favFoods.includes(f.id))
+  const favoriteRestaurants = restaurants.filter(r => favRestaurants.includes(r.id))
+
+  const handleReorder = (order) => {
+    order.items.forEach(item => {
+      // Create a simplified item matching addToCart signature
+      const foodItem = foods.find(f => f.id === item.id.split('-')[0]) || item
+      addToCart({ ...foodItem, quantity: item.quantity })
+    })
+    navigate('/cart')
   }
 
-  const handleSave = () => {
-    updateProfile(formData)
-    setIsEditing(false)
-  }
-
-  const handleLogout = () => {
-    logout()
-    navigate('/')
-  }
+  const TABS = [
+    { id: 'profile', icon: <FaUser />, label: 'Profile Info' },
+    { id: 'orders', icon: <FaShoppingBag />, label: 'My Orders' },
+    { id: 'favorites', icon: <FaHeart />, label: 'Favorites' },
+    { id: 'addresses', icon: <FaMapMarkerAlt />, label: 'Addresses' },
+    { id: 'wallet', icon: <FaWallet />, label: 'Wallet' },
+    { id: 'settings', icon: <FaCog />, label: 'Settings' },
+  ]
 
   return (
-    <div className="min-h-screen bg-gray-50 animate-fade-in py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-dark-900 mb-8">My Profile</h1>
-
-        <div className="grid md:grid-cols-3 gap-8">
+    <div className="page-container py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          
           {/* Sidebar */}
-          <div className="md:col-span-1">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center">
-              <div className="relative inline-block mb-4">
-                <img
-                  src={user?.avatar}
-                  alt={user?.name}
-                  className="w-24 h-24 rounded-full object-cover ring-4 ring-primary-100 mx-auto"
-                />
-                <button className="absolute bottom-0 right-0 w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-primary-600 transition-colors">
-                  <FaEdit className="text-xs" />
-                </button>
+          <div className="w-full lg:w-80 shrink-0 space-y-6">
+            {/* User Card */}
+            <div className="section-card text-center relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-r from-primary-500 to-orange-400" />
+              <div className="relative mt-8">
+                <img src={user.avatar} alt={user.name} className="w-24 h-24 rounded-full object-cover border-4 border-white dark:border-dark-800 mx-auto shadow-md" />
+                <h2 className="text-xl font-bold text-dark-900 dark:text-white mt-4">{user.name}</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
+                <div className="inline-block mt-3 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-3 py-1 rounded-full text-xs font-bold border border-amber-200 dark:border-amber-800/50">
+                  {tier} Member
+                </div>
               </div>
-              <h2 className="text-xl font-bold text-dark-900">{user?.name}</h2>
-              <p className="text-gray-500 text-sm mb-6">{user?.email}</p>
 
-              <div className="space-y-2">
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-primary-50 text-primary-700 font-medium">
-                  <FaUser /> Profile
+              <div className="grid grid-cols-2 gap-4 mt-6 border-t border-gray-100 dark:border-dark-700 pt-6">
+                <div>
+                  <p className="text-2xl font-black text-dark-900 dark:text-white">{userOrders.length}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Orders</p>
                 </div>
-                <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 text-gray-600 cursor-pointer transition-colors">
-                  <FaShoppingBag /> My Orders
+                <div>
+                  <p className="text-2xl font-black text-primary-500">{points}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Points</p>
                 </div>
-                <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 text-gray-600 cursor-pointer transition-colors">
-                  <FaHeart /> Favorites
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-red-600 transition-colors text-left"
-                >
-                  <FaSignOutAlt /> Log Out
-                </button>
               </div>
+            </div>
+
+            {/* Navigation Tabs */}
+            <div className="section-card p-3">
+              {TABS.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm ${
+                    activeTab === tab.id
+                      ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-dark-700'
+                  }`}
+                >
+                  <span className={activeTab === tab.id ? 'text-primary-500' : 'text-gray-400'}>{tab.icon}</span>
+                  {tab.label}
+                </button>
+              ))}
+              <div className="my-2 border-t border-gray-100 dark:border-dark-700" />
+              <button
+                onClick={() => { logout(); navigate('/') }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 font-medium text-sm transition-colors"
+              >
+                <FaSignOutAlt className="opacity-70" />
+                Log Out
+              </button>
             </div>
           </div>
 
-          {/* Main Content */}
-          <div className="md:col-span-2">
-            <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold text-dark-900">Personal Information</h3>
-                {!isEditing ? (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="flex items-center gap-2 text-primary-500 font-medium hover:bg-primary-50 px-3 py-1.5 rounded-lg transition-colors"
-                  >
-                    <FaEdit /> Edit
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleSave}
-                    className="flex items-center gap-2 text-secondary-500 font-medium hover:bg-secondary-50 px-3 py-1.5 rounded-lg transition-colors"
-                  >
-                    <FaSave /> Save
-                  </button>
-                )}
-              </div>
-
-              <div className="space-y-5">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                  <div className="relative">
-                    <FaUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      disabled={!isEditing}
-                      className="input-field pl-10 disabled:bg-gray-50 disabled:text-gray-500"
-                    />
+          {/* Main Content Area */}
+          <div className="flex-1">
+            <div className="section-card min-h-[600px]">
+              
+              {/* PROFILE TAB */}
+              {activeTab === 'profile' && (
+                <div className="animate-fade-in">
+                  <div className="flex justify-between items-center mb-6 border-b border-gray-100 dark:border-dark-700 pb-4">
+                    <h2 className="text-xl font-bold text-dark-900 dark:text-white">Personal Information</h2>
+                    <button onClick={() => setEditing(!editing)} className="text-sm font-semibold text-primary-500 hover:text-primary-600 flex items-center gap-1.5">
+                      <FaEdit /> {editing ? 'Cancel' : 'Edit'}
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-6 max-w-lg">
+                    {['Name', 'Email', 'Phone'].map(field => (
+                      <div key={field}>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{field}</label>
+                        <input
+                          type={field === 'Email' ? 'email' : 'text'}
+                          defaultValue={user[field.toLowerCase()] || ''}
+                          disabled={!editing}
+                          className={`input-field ${!editing ? 'bg-gray-50 dark:bg-dark-900 border-transparent text-gray-500' : ''}`}
+                        />
+                      </div>
+                    ))}
+                    {editing && (
+                      <button className="btn-primary" onClick={() => setEditing(false)}>Save Changes</button>
+                    )}
                   </div>
                 </div>
+              )}
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <div className="relative">
-                    <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      disabled={!isEditing}
-                      className="input-field pl-10 disabled:bg-gray-50 disabled:text-gray-500"
-                    />
+              {/* ORDERS TAB */}
+              {activeTab === 'orders' && (
+                <div className="animate-fade-in">
+                  <h2 className="text-xl font-bold text-dark-900 dark:text-white mb-6 border-b border-gray-100 dark:border-dark-700 pb-4">Order History</h2>
+                  {userOrders.length === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="w-20 h-20 bg-gray-50 dark:bg-dark-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <FaShoppingBag className="text-3xl text-gray-300 dark:text-gray-600" />
+                      </div>
+                      <p className="font-semibold text-dark-900 dark:text-white">No orders yet</p>
+                      <Link to="/restaurants" className="text-primary-500 text-sm font-medium hover:underline mt-2 inline-block">Order now</Link>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {userOrders.map(order => (
+                        <div key={order.id} className="border border-gray-100 dark:border-dark-700 rounded-2xl p-4 hover:shadow-md transition-all">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <h3 className="font-bold text-dark-900 dark:text-white">{order.restaurantName || 'QuickBite Order'}</h3>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{new Date(order.date).toLocaleDateString()} • {order.items.length} items</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold text-dark-900 dark:text-white">${order.total.toFixed(2)}</p>
+                              <span className={`inline-block mt-1 px-2 py-0.5 rounded text-xs font-semibold capitalize ${
+                                order.status === 'delivered' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                                order.status === 'cancelled' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                                'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
+                              }`}>
+                                {order.status.replace('_', ' ')}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-1 mb-4">
+                            {order.items.map(i => `${i.quantity}x ${i.displayName || i.name}`).join(', ')}
+                          </p>
+                          <div className="flex gap-2">
+                            {order.status !== 'delivered' && order.status !== 'cancelled' && (
+                              <button onClick={() => navigate(`/order/${order.id}`)} className="flex-1 py-2 bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400 font-semibold rounded-xl text-sm transition-colors hover:bg-primary-100">
+                                Track Order
+                              </button>
+                            )}
+                            <button onClick={() => handleReorder(order)} className={`flex-1 py-2 font-semibold rounded-xl text-sm transition-colors ${
+                              order.status === 'delivered' || order.status === 'cancelled' ? 'bg-primary-500 text-white hover:bg-primary-600' : 'bg-gray-100 dark:bg-dark-800 text-dark-900 dark:text-white hover:bg-gray-200'
+                            }`}>
+                              Reorder
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* FAVORITES TAB */}
+              {activeTab === 'favorites' && (
+                <div className="animate-fade-in">
+                  <h2 className="text-xl font-bold text-dark-900 dark:text-white mb-6 border-b border-gray-100 dark:border-dark-700 pb-4">Favorites</h2>
+                  
+                  <h3 className="font-bold text-gray-500 uppercase text-xs tracking-wider mb-4">Foods</h3>
+                  {favoriteFoods.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                      {favoriteFoods.map(f => <FoodCard key={f.id} food={f} />)}
+                    </div>
+                  ) : <p className="text-sm text-gray-500 mb-8">No favorite foods yet.</p>}
+
+                  <h3 className="font-bold text-gray-500 uppercase text-xs tracking-wider mb-4">Restaurants</h3>
+                  {favoriteRestaurants.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {favoriteRestaurants.map(r => <RestaurantCard key={r.id} restaurant={r} />)}
+                    </div>
+                  ) : <p className="text-sm text-gray-500">No favorite restaurants yet.</p>}
+                </div>
+              )}
+
+              {/* ADDRESSES TAB */}
+              {activeTab === 'addresses' && (
+                <div className="animate-fade-in max-w-xl">
+                  <h2 className="text-xl font-bold text-dark-900 dark:text-white mb-6 border-b border-gray-100 dark:border-dark-700 pb-4">Saved Addresses</h2>
+                  <AddressManager />
+                </div>
+              )}
+
+              {/* WALLET TAB */}
+              {activeTab === 'wallet' && (
+                <div className="animate-fade-in max-w-md">
+                  <h2 className="text-xl font-bold text-dark-900 dark:text-white mb-6 border-b border-gray-100 dark:border-dark-700 pb-4">Wallet & Rewards</h2>
+                  <WalletCard />
+                  <div className="mt-6 space-y-4">
+                    <Link to="/wallet" className="btn-primary w-full justify-center">View Wallet Details</Link>
+                    <p className="text-center text-xs text-gray-500 dark:text-gray-400">Total Spent: ${totalSpent.toFixed(2)}</p>
                   </div>
                 </div>
+              )}
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                  <div className="relative">
-                    <FaPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      disabled={!isEditing}
-                      placeholder="Add phone number"
-                      className="input-field pl-10 disabled:bg-gray-50 disabled:text-gray-500"
-                    />
+              {/* SETTINGS TAB */}
+              {activeTab === 'settings' && (
+                <div className="animate-fade-in max-w-md space-y-8">
+                  <div>
+                    <h2 className="text-xl font-bold text-dark-900 dark:text-white mb-4 border-b border-gray-100 dark:border-dark-700 pb-4">App Settings</h2>
+                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-dark-900 rounded-xl border border-gray-100 dark:border-dark-700">
+                      <div>
+                        <p className="font-bold text-dark-900 dark:text-white">Dark Mode</p>
+                        <p className="text-xs text-gray-500">Toggle app appearance</p>
+                      </div>
+                      <DarkModeToggle />
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-dark-900 dark:text-white mb-4 text-lg">Danger Zone</h3>
+                    <button className="w-full text-left p-4 rounded-xl border border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 font-semibold text-sm hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors">
+                      Delete Account
+                    </button>
+                    <p className="text-xs text-gray-500 mt-2">This action is permanent and cannot be undone.</p>
                   </div>
                 </div>
+              )}
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Address</label>
-                  <div className="relative">
-                    <FaMapMarkerAlt className="absolute left-3 top-3 text-gray-400" />
-                    <textarea
-                      value={formData.address}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      disabled={!isEditing}
-                      placeholder="Add your delivery address"
-                      rows={3}
-                      className="input-field pl-10 disabled:bg-gray-50 disabled:text-gray-500 resize-none"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 mt-6">
-              <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
-                <p className="text-2xl font-bold text-primary-500">12</p>
-                <p className="text-xs text-gray-500 mt-1">Orders</p>
-              </div>
-              <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
-                <p className="text-2xl font-bold text-secondary-500">5</p>
-                <p className="text-xs text-gray-500 mt-1">Favorites</p>
-              </div>
-              <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
-                <p className="text-2xl font-bold text-purple-500">$248</p>
-                <p className="text-xs text-gray-500 mt-1">Spent</p>
-              </div>
             </div>
           </div>
         </div>
