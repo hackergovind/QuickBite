@@ -1,6 +1,4 @@
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import nodemailer from 'nodemailer';
 
 export default async function handler(req, res) {
   // Set CORS headers
@@ -29,9 +27,19 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: 'QuickBite <onboarding@resend.dev>', // Resend's free tier domain
-      to: [email],
+    // Configure Nodemailer transporter using Gmail SMTP
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    // Send the email
+    const info = await transporter.sendMail({
+      from: `"QuickBite Security" <${process.env.SMTP_USER}>`,
+      to: email,
       subject: 'QuickBite - Your Verification Code',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -45,14 +53,11 @@ export default async function handler(req, res) {
       `,
     });
 
-    if (error) {
-      console.error('Resend Error:', error);
-      return res.status(400).json({ error: error.message });
-    }
+    console.log('Message sent: %s', info.messageId);
 
-    return res.status(200).json({ success: true, message: 'OTP sent successfully', data });
+    return res.status(200).json({ success: true, message: 'OTP sent successfully' });
   } catch (err) {
-    console.error('Server Error:', err);
-    return res.status(500).json({ error: 'Failed to send email' });
+    console.error('SMTP Error:', err);
+    return res.status(500).json({ error: 'Failed to send email. Check your SMTP configuration.' });
   }
 }
