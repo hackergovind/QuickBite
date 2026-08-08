@@ -23,25 +23,25 @@ export default function RestaurantCard({ restaurant }) {
 
         <div className="p-4 space-y-3">
           <div className="flex justify-between items-start">
-            <h3 className="font-bold text-lg text-dark-900 group-hover:text-primary-600 transition-colors line-clamp-1">
+            <h3 className="font-bold text-lg text-dark-900 dark:text-white group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors line-clamp-1">
               {restaurant.name}
             </h3>
-            <div className="flex items-center gap-1 bg-green-50 px-2 py-1 rounded-lg">
-              <FaStar className="text-green-600 text-xs" />
-              <span className="text-sm font-bold text-green-700">{restaurant.rating}</span>
+            <div className="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-lg">
+              <FaStar className="text-green-600 dark:text-green-400 text-xs" />
+              <span className="text-sm font-bold text-green-700 dark:text-green-400">{restaurant.rating}</span>
             </div>
           </div>
 
-          <p className="text-sm text-gray-500 line-clamp-1">{restaurant.cuisine}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1">{restaurant.cuisine}</p>
 
-          <div className="flex items-center justify-between text-sm text-gray-500 pt-2 border-t border-gray-100">
+          <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-100 dark:border-dark-700">
             <div className="flex items-center gap-1">
               <FaClock className="text-primary-400" />
               <span>{restaurant.deliveryTime}</span>
             </div>
             <div className="flex items-center gap-1">
               <FaMotorcycle className="text-primary-400" />
-              <span>{restaurant.deliveryFee === 0 ? 'Free' : `$${restaurant.deliveryFee}`}</span>
+              <span>{restaurant.deliveryFee === 0 ? 'Free' : `₹${restaurant.deliveryFee}`}</span>
             </div>
           </div>
         </div>
