@@ -12,13 +12,13 @@ import Login from './pages/Login.jsx'
 import Signup from './pages/Signup.jsx'
 import Profile from './pages/Profile.jsx'
 import OwnerDashboard from './pages/OwnerDashboard.jsx'
+import AdminDashboard from './pages/admin/AdminDashboard.jsx'
 import NotFound from './pages/NotFound.jsx'
 import OrderTracking from './pages/OrderTracking.jsx'
 import RiderDashboard from './pages/RiderDashboard.jsx'
-import AdminDashboard from './pages/AdminDashboard.jsx'
 import Wallet from './pages/Wallet.jsx'
 import Notifications from './pages/Notifications.jsx'
-import ProtectedRoute, { OwnerRoute } from './components/ProtectedRoute.jsx'
+import ProtectedRoute, { OwnerRoute, AdminRoute } from './components/ProtectedRoute.jsx'
 import { RestaurantProvider } from './contexts/RestaurantContext.jsx'
 import { OrdersProvider } from './contexts/OrdersContext.jsx'
 import { ReviewsProvider } from './contexts/ReviewsContext.jsx'
@@ -26,6 +26,7 @@ import { ThemeProvider } from './contexts/ThemeContext.jsx'
 import { FavoritesProvider } from './contexts/FavoritesContext.jsx'
 import { NotificationsProvider } from './contexts/NotificationsContext.jsx'
 import { WalletProvider } from './contexts/WalletContext.jsx'
+import { AdminProvider } from './contexts/AdminContext.jsx'
 
 function CustomerLayout({ children }) {
   return (
@@ -39,77 +40,86 @@ function CustomerLayout({ children }) {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <NotificationsProvider>
-        <WalletProvider>
-          <FavoritesProvider>
-            <ReviewsProvider>
-              <OrdersProvider>
-                <RestaurantProvider>
-                  <Routes>
-                    {/* Owner Dashboard — full-screen, no navbar/footer */}
-                    <Route
-                      path="/owner-dashboard"
-                      element={
-                        <OwnerRoute>
-                          <OwnerDashboard />
-                        </OwnerRoute>
-                      }
-                    />
+    <AdminProvider>
+      <ThemeProvider>
+        <NotificationsProvider>
+          <WalletProvider>
+            <FavoritesProvider>
+              <ReviewsProvider>
+                <OrdersProvider>
+                  <RestaurantProvider>
+                    <Routes>
+                      {/* Admin Panel — full-screen, no navbar/footer */}
+                      <Route
+                        path="/admin/*"
+                        element={
+                          <AdminRoute>
+                            <AdminDashboard />
+                          </AdminRoute>
+                        }
+                      />
 
-                    {/* Rider Dashboard */}
-                    <Route
-                      path="/rider-dashboard"
-                      element={
-                        <ProtectedRoute>
-                          <RiderDashboard />
-                        </ProtectedRoute>
-                      }
-                    />
+                      {/* Owner Dashboard — full-screen, no navbar/footer */}
+                      <Route
+                        path="/owner-dashboard"
+                        element={
+                          <OwnerRoute>
+                            <OwnerDashboard />
+                          </OwnerRoute>
+                        }
+                      />
 
-                    {/* Admin Dashboard */}
-                    <Route path="/admin" element={<AdminDashboard />} />
+                      {/* Rider Dashboard */}
+                      <Route
+                        path="/rider-dashboard"
+                        element={
+                          <ProtectedRoute>
+                            <RiderDashboard />
+                          </ProtectedRoute>
+                        }
+                      />
 
-                    {/* All customer-facing routes */}
-                    <Route
-                      path="/*"
-                      element={
-                        <CustomerLayout>
-                          <Routes>
-                            <Route path="/" element={<Home />} />
-                            <Route path="/restaurants" element={<Restaurants />} />
-                            <Route path="/restaurant/:id" element={<RestaurantDetails />} />
-                            <Route path="/food/:id" element={<FoodDetails />} />
-                            <Route path="/cart" element={<Cart />} />
-                            <Route path="/checkout" element={
-                              <ProtectedRoute><Checkout /></ProtectedRoute>
-                            } />
-                            <Route path="/order/:id" element={
-                              <ProtectedRoute><OrderTracking /></ProtectedRoute>
-                            } />
-                            <Route path="/login" element={<Login />} />
-                            <Route path="/signup" element={<Signup />} />
-                            <Route path="/profile" element={
-                              <ProtectedRoute><Profile /></ProtectedRoute>
-                            } />
-                            <Route path="/wallet" element={
-                              <ProtectedRoute><Wallet /></ProtectedRoute>
-                            } />
-                            <Route path="/notifications" element={
-                              <ProtectedRoute><Notifications /></ProtectedRoute>
-                            } />
-                            <Route path="*" element={<NotFound />} />
-                          </Routes>
-                        </CustomerLayout>
-                      }
-                    />
-                  </Routes>
-                </RestaurantProvider>
-              </OrdersProvider>
-            </ReviewsProvider>
-          </FavoritesProvider>
-        </WalletProvider>
-      </NotificationsProvider>
-    </ThemeProvider>
+                      {/* All customer-facing routes */}
+                      <Route
+                        path="/*"
+                        element={
+                          <CustomerLayout>
+                            <Routes>
+                              <Route path="/" element={<Home />} />
+                              <Route path="/restaurants" element={<Restaurants />} />
+                              <Route path="/restaurant/:id" element={<RestaurantDetails />} />
+                              <Route path="/food/:id" element={<FoodDetails />} />
+                              <Route path="/cart" element={<Cart />} />
+                              <Route path="/checkout" element={
+                                <ProtectedRoute><Checkout /></ProtectedRoute>
+                              } />
+                              <Route path="/order/:id" element={
+                                <ProtectedRoute><OrderTracking /></ProtectedRoute>
+                              } />
+                              <Route path="/login" element={<Login />} />
+                              <Route path="/signup" element={<Signup />} />
+                              <Route path="/profile" element={
+                                <ProtectedRoute><Profile /></ProtectedRoute>
+                              } />
+                              <Route path="/wallet" element={
+                                <ProtectedRoute><Wallet /></ProtectedRoute>
+                              } />
+                              <Route path="/notifications" element={
+                                <ProtectedRoute><Notifications /></ProtectedRoute>
+                              } />
+                              <Route path="*" element={<NotFound />} />
+                            </Routes>
+                          </CustomerLayout>
+                        }
+                      />
+                    </Routes>
+                  </RestaurantProvider>
+                </OrdersProvider>
+              </ReviewsProvider>
+            </FavoritesProvider>
+          </WalletProvider>
+        </NotificationsProvider>
+      </ThemeProvider>
+    </AdminProvider>
   )
 }

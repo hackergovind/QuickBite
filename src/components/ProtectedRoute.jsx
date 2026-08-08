@@ -29,3 +29,19 @@ export function OwnerRoute({ children }) {
 
   return children
 }
+
+// Requires user to have admin role
+export function AdminRoute({ children }) {
+  const { isAuthenticated, role } = useAuth()
+  const location = useLocation()
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
+
+  if (role !== 'admin') {
+    return <Navigate to="/" replace />
+  }
+
+  return children
+}
