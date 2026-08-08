@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { FaStar, FaClock, FaMotorcycle, FaArrowLeft, FaMapMarkerAlt, FaPhone, FaHeart, FaShare } from 'react-icons/fa'
-import { restaurants, foods } from '../data/dummyData.js'
 import FoodCard from '../components/FoodCard.jsx'
 import ReviewCard from '../components/ReviewCard.jsx'
 import ReviewForm from '../components/ReviewForm.jsx'
@@ -9,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext.jsx'
 import { useFavorites } from '../contexts/FavoritesContext.jsx'
 import { useReviews } from '../contexts/ReviewsContext.jsx'
 import { useRestaurantOwner } from '../contexts/RestaurantContext.jsx'
+import { useCatalog } from '../contexts/CatalogContext.jsx'
 
 export default function RestaurantDetails() {
   const { id } = useParams()
@@ -16,6 +16,7 @@ export default function RestaurantDetails() {
   const { isFavoriteRestaurant, toggleFavoriteRestaurant } = useFavorites()
   const { getReviewsByRestaurant } = useReviews()
   const { ownerRestaurants } = useRestaurantOwner()
+  const { restaurants } = useCatalog()
 
   const [activeTab, setActiveTab] = useState('menu')
   const [selectedCategory, setSelectedCategory] = useState('all')

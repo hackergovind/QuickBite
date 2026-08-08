@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom'
 import { FaArrowLeft, FaWallet, FaArrowUp, FaArrowDown, FaPlus, FaQrcode, FaGift, FaCopy, FaShareAlt } from 'react-icons/fa'
 import { useWallet } from '../contexts/WalletContext.jsx'
 import WalletCard from '../components/WalletCard.jsx'
-import { coupons } from '../data/dummyData.js'
+import { useCatalog } from '../contexts/CatalogContext.jsx'
 
 export default function Wallet() {
   const { transactions, referralCode } = useWallet()
+  const { coupons } = useCatalog()
 
   const getTxIcon = (type) => {
     switch (type) {

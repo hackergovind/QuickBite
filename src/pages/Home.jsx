@@ -8,16 +8,17 @@ import Testimonials from '../components/Testimonials.jsx'
 import FoodCard from '../components/FoodCard.jsx'
 import AISearchBar from '../components/AISearchBar.jsx'
 import MoodPicker from '../components/MoodPicker.jsx'
-import { foods, restaurants, offers } from '../data/dummyData.js'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { useOrders } from '../contexts/OrdersContext.jsx'
 import { useCart } from '../contexts/CartContext.jsx'
+import { useCatalog } from '../contexts/CatalogContext.jsx'
 
 export default function Home() {
   const navigate = useNavigate()
   const { user, isAuthenticated } = useAuth()
   const { orders } = useOrders()
   const { addToCart } = useCart()
+  const { foods, restaurants, offers } = useCatalog()
   const [selectedMood, setSelectedMood] = useState(null)
 
   // Top rated foods

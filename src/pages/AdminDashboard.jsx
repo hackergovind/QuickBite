@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FaUsers, FaStore, FaMotorcycle, FaChartLine, FaSearch, FaCheck, FaTimes, FaUserShield } from 'react-icons/fa'
 import { StatCard, BarChart } from '../components/AnalyticsChart.jsx'
-import { restaurants, foods } from '../data/dummyData.js'
+import { useCatalog } from '../contexts/CatalogContext.jsx'
 
 const MOCK_APPLICATIONS = [
   { id: 1, name: 'Taco Fiesta', owner: 'Carlos R.', type: 'Mexican', address: '124 Fiesta Blvd', status: 'pending' },
@@ -10,6 +10,7 @@ const MOCK_APPLICATIONS = [
 ]
 
 export default function AdminDashboard() {
+  const { restaurants } = useCatalog()
   const [activeTab, setActiveTab] = useState('overview')
   const [applications, setApplications] = useState(MOCK_APPLICATIONS)
 

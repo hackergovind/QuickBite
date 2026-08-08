@@ -9,6 +9,8 @@ export const env = {
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   clientOrigin: process.env.CLIENT_ORIGIN || 'http://localhost:3000',
+  redisUrl: process.env.REDIS_URL || '',
+  cacheTtlSeconds: Number(process.env.CACHE_TTL_SECONDS || 300),
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000),
   rateLimitMax: Number(process.env.RATE_LIMIT_MAX || 100),
   authRateLimitMax: Number(process.env.AUTH_RATE_LIMIT_MAX || 20)

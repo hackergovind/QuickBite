@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import { FaTag, FaCheck, FaTimes } from 'react-icons/fa'
-import { coupons } from '../data/dummyData.js'
+import { useCatalog } from '../contexts/CatalogContext.jsx'
 
 export default function CouponInput({ totalAmount, onApply, appliedCoupon }) {
+  const { coupons } = useCatalog()
   const [code, setCode] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')

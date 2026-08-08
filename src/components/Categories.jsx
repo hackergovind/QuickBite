@@ -1,7 +1,9 @@
 import React from 'react'
-import { categories } from '../data/dummyData.js'
+import { useCatalog } from '../contexts/CatalogContext.jsx'
 
 export default function Categories({ activeCategory, onCategoryChange }) {
+  const { categories } = useCatalog()
+
   return (
     <div className="w-full overflow-x-auto hide-scrollbar py-4">
       <div className="flex gap-3 min-w-max px-4 sm:px-6 lg:px-8">

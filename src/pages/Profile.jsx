@@ -6,7 +6,7 @@ import { useOrders } from '../contexts/OrdersContext.jsx'
 import { useFavorites } from '../contexts/FavoritesContext.jsx'
 import { useWallet } from '../contexts/WalletContext.jsx'
 import { useCart } from '../contexts/CartContext.jsx'
-import { foods, restaurants } from '../data/dummyData.js'
+import { useCatalog } from '../contexts/CatalogContext.jsx'
 import AddressManager from '../components/AddressManager.jsx'
 import WalletCard from '../components/WalletCard.jsx'
 import DarkModeToggle from '../components/DarkModeToggle.jsx'
@@ -19,6 +19,7 @@ export default function Profile() {
   const { favFoods, favRestaurants } = useFavorites()
   const { tier, points } = useWallet()
   const { addToCart } = useCart()
+  const { foods, restaurants } = useCatalog()
   const navigate = useNavigate()
 
   const [activeTab, setActiveTab] = useState('profile')

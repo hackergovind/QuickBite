@@ -3,17 +3,27 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { FaPhone, FaCommentDots, FaArrowLeft, FaMotorcycle, FaStar } from 'react-icons/fa'
 import { useOrders } from '../contexts/OrdersContext.jsx'
 import OrderTracker from '../components/OrderTracker.jsx'
-import { deliveryPartners } from '../data/dummyData.js'
+import { useCatalog } from '../contexts/CatalogContext.jsx'
+
+const FALLBACK_PARTNER = {
+  name: 'QuickBite Rider',
+  vehicle: 'Bike',
+  phone: '',
+  rating: 4.8,
+  deliveries: 500,
+  photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop'
+}
 
 export default function OrderTracking() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { orders, updateOrderStatus } = useOrders()
+  const { deliveryPartners } = useCatalog()
   
   const order = orders.find(o => o.id === id)
   const [localStatus, setLocalStatus] = useState(order?.status || 'pending')
   const [eta, setEta] = useState(35)
-  const [partner] = useState(() => deliveryPartners[Math.floor(Math.random() * deliveryPartners.length)])
+  const partner = deliveryPartners[0] || FALLBACK_PARTNER
 
   // Auto-progression for demo purposes
   useEffect(() => {

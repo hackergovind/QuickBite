@@ -27,6 +27,7 @@ import { FavoritesProvider } from './contexts/FavoritesContext.jsx'
 import { NotificationsProvider } from './contexts/NotificationsContext.jsx'
 import { WalletProvider } from './contexts/WalletContext.jsx'
 import { AdminProvider } from './contexts/AdminContext.jsx'
+import { CatalogProvider } from './contexts/CatalogContext.jsx'
 
 function CustomerLayout({ children }) {
   return (
@@ -48,71 +49,69 @@ export default function App() {
               <ReviewsProvider>
                 <OrdersProvider>
                   <RestaurantProvider>
-                    <Routes>
-                      {/* Admin Panel — full-screen, no navbar/footer */}
-                      <Route
-                        path="/admin/*"
-                        element={
-                          <AdminRoute>
-                            <AdminDashboard />
-                          </AdminRoute>
-                        }
-                      />
+                    <CatalogProvider>
+                      <Routes>
+                        <Route
+                          path="/admin/*"
+                          element={
+                            <AdminRoute>
+                              <AdminDashboard />
+                            </AdminRoute>
+                          }
+                        />
 
-                      {/* Owner Dashboard — full-screen, no navbar/footer */}
-                      <Route
-                        path="/owner-dashboard"
-                        element={
-                          <OwnerRoute>
-                            <OwnerDashboard />
-                          </OwnerRoute>
-                        }
-                      />
+                        <Route
+                          path="/owner-dashboard"
+                          element={
+                            <OwnerRoute>
+                              <OwnerDashboard />
+                            </OwnerRoute>
+                          }
+                        />
 
-                      {/* Rider Dashboard */}
-                      <Route
-                        path="/rider-dashboard"
-                        element={
-                          <ProtectedRoute>
-                            <RiderDashboard />
-                          </ProtectedRoute>
-                        }
-                      />
+                        <Route
+                          path="/rider-dashboard"
+                          element={
+                            <ProtectedRoute>
+                              <RiderDashboard />
+                            </ProtectedRoute>
+                          }
+                        />
 
-                      {/* All customer-facing routes */}
-                      <Route
-                        path="/*"
-                        element={
-                          <CustomerLayout>
-                            <Routes>
-                              <Route path="/" element={<Home />} />
-                              <Route path="/restaurants" element={<Restaurants />} />
-                              <Route path="/restaurant/:id" element={<RestaurantDetails />} />
-                              <Route path="/food/:id" element={<FoodDetails />} />
-                              <Route path="/cart" element={<Cart />} />
-                              <Route path="/checkout" element={
-                                <ProtectedRoute><Checkout /></ProtectedRoute>
-                              } />
-                              <Route path="/order/:id" element={
-                                <ProtectedRoute><OrderTracking /></ProtectedRoute>
-                              } />
-                              <Route path="/login" element={<Login />} />
-                              <Route path="/signup" element={<Signup />} />
-                              <Route path="/profile" element={
-                                <ProtectedRoute><Profile /></ProtectedRoute>
-                              } />
-                              <Route path="/wallet" element={
-                                <ProtectedRoute><Wallet /></ProtectedRoute>
-                              } />
-                              <Route path="/notifications" element={
-                                <ProtectedRoute><Notifications /></ProtectedRoute>
-                              } />
-                              <Route path="*" element={<NotFound />} />
-                            </Routes>
-                          </CustomerLayout>
-                        }
-                      />
-                    </Routes>
+                        <Route
+                          path="/*"
+                          element={
+                            <CustomerLayout>
+                              <Routes>
+                                <Route path="/" element={<Home />} />
+                                <Route path="/restaurants" element={<Restaurants />} />
+                                <Route path="/restaurant/:id" element={<RestaurantDetails />} />
+                                <Route path="/food/:id" element={<FoodDetails />} />
+                                <Route path="/cart" element={<Cart />} />
+                                <Route path="/checkout" element={
+                                  <ProtectedRoute><Checkout /></ProtectedRoute>
+                                } />
+                                <Route path="/order/:id" element={
+                                  <ProtectedRoute><OrderTracking /></ProtectedRoute>
+                                } />
+                                <Route path="/login" element={<Login />} />
+                                <Route path="/signup" element={<Signup />} />
+                                <Route path="/profile" element={
+                                  <ProtectedRoute><Profile /></ProtectedRoute>
+                                } />
+                                <Route path="/wallet" element={
+                                  <ProtectedRoute><Wallet /></ProtectedRoute>
+                                } />
+                                <Route path="/notifications" element={
+                                  <ProtectedRoute><Notifications /></ProtectedRoute>
+                                } />
+                                <Route path="*" element={<NotFound />} />
+                              </Routes>
+                            </CustomerLayout>
+                          }
+                        />
+                      </Routes>
+                    </CatalogProvider>
                   </RestaurantProvider>
                 </OrdersProvider>
               </ReviewsProvider>

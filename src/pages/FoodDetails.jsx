@@ -4,7 +4,7 @@ import { FaStar, FaHeart, FaShoppingBag, FaArrowLeft, FaPlus, FaMinus, FaLeaf, F
 import { useCart } from '../contexts/CartContext.jsx'
 import { useFavorites } from '../contexts/FavoritesContext.jsx'
 import { useRestaurantOwner } from '../contexts/RestaurantContext.jsx'
-import { foods, restaurants } from '../data/dummyData.js'
+import { useCatalog } from '../contexts/CatalogContext.jsx'
 import FoodCustomizer from '../components/FoodCustomizer.jsx'
 import NutritionPanel from '../components/NutritionPanel.jsx'
 import FoodCard from '../components/FoodCard.jsx'
@@ -15,6 +15,7 @@ export default function FoodDetails() {
   const { cartItems, addToCart, updateQuantity } = useCart()
   const { isFavoriteFood, toggleFavoriteFood } = useFavorites()
   const { ownerRestaurants } = useRestaurantOwner()
+  const { foods, restaurants } = useCatalog()
   const [showCustomizer, setShowCustomizer] = React.useState(false)
 
   // Find food

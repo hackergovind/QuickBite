@@ -4,6 +4,7 @@ import helmet from 'helmet'
 import { env } from './config/env.js'
 import { apiLimiter } from './middleware/rateLimit.js'
 import authRoutes from './routes/authRoutes.js'
+import catalogRoutes from './routes/catalogRoutes.js'
 
 const app = express()
 
@@ -18,6 +19,7 @@ app.get('/api/health', (req, res) => {
 })
 
 app.use('/api/auth', authRoutes)
+app.use('/api/catalog', catalogRoutes)
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' })

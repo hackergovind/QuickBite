@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import { mockReviews } from '../data/dummyData.js'
 
 const ReviewsContext = createContext(null)
+const mockReviews = []
 
 function loadReviews() {
   try {

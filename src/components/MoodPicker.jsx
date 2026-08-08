@@ -1,7 +1,9 @@
 import React from 'react'
-import { moodCategories } from '../data/dummyData.js'
+import { useCatalog } from '../contexts/CatalogContext.jsx'
 
 export default function MoodPicker({ onSelect }) {
+  const { moodCategories } = useCatalog()
+
   return (
     <section className="py-12 bg-white dark:bg-dark-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

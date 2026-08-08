@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { FaSearch, FaMicrophone, FaTimes, FaHistory } from 'react-icons/fa'
-import { foods as dummyFoods, restaurants as dummyRestaurants } from '../data/dummyData.js'
 import { useNavigate } from 'react-router-dom'
 import { useRestaurantOwner } from '../contexts/RestaurantContext.jsx'
+import { useCatalog } from '../contexts/CatalogContext.jsx'
 
 // Simple NLP-style keyword matching
 function parseQuery(query) {
@@ -10,22 +10,22 @@ function parseQuery(query) {
   const filters = {}
 
   // Price filter
-  const priceMatch = q.match(/under\s*\$?(\d+)/)
-  if (priceMatch) filters.maxPrice = parseFloat(priceMatch[1])
+  const priceMatch = q.match(/(?:under|अंडर|से कम|के अंदर)\s*(?:\$|₹|rs\.?|रुपये)?\s*(\d+)|(\d+)\s*(?:\$|₹|rs\.?|रुपये)?\s*(?:से कम|के अंदर)/)
+  if (priceMatch) filters.maxPrice = parseFloat(priceMatch[1] || priceMatch[2])
 
   // Veg detection
-  if (q.includes('veg') || q.includes('vegetarian') || q.includes('vegan')) filters.isVeg = true
+  if (q.includes('veg') || q.includes('vegetarian') || q.includes('vegan') || q.includes('वेज') || q.includes('शाकाहारी')) filters.isVeg = true
 
   // Category detection
-  if (q.includes('spicy') || q.includes('hot')) filters.spicy = true
-  if (q.includes('healthy') || q.includes('salad') || q.includes('protein')) filters.category = 'healthy'
-  if (q.includes('pizza')) filters.category = 'pizza'
-  if (q.includes('burger')) filters.category = 'burger'
-  if (q.includes('sushi')) filters.category = 'sushi'
-  if (q.includes('indian') || q.includes('curry')) filters.category = 'indian'
-  if (q.includes('dessert') || q.includes('sweet') || q.includes('cake')) filters.category = 'dessert'
-  if (q.includes('chicken')) filters.keyword = 'chicken'
-  if (q.includes('paneer')) filters.keyword = 'paneer'
+  if (q.includes('spicy') || q.includes('hot') || q.includes('मसालेदार') || q.includes('तीखा')) filters.spicy = true
+  if (q.includes('healthy') || q.includes('salad') || q.includes('protein') || q.includes('हेल्दी') || q.includes('स्वस्थ') || q.includes('सलाद') || q.includes('प्रोटीन')) filters.category = 'healthy'
+  if (q.includes('pizza') || q.includes('पिज्जा')) filters.category = 'pizza'
+  if (q.includes('burger') || q.includes('बर्गर')) filters.category = 'burger'
+  if (q.includes('sushi') || q.includes('सुशी')) filters.category = 'sushi'
+  if (q.includes('indian') || q.includes('curry') || q.includes('भारतीय') || q.includes('इंडियन') || q.includes('करी')) filters.category = 'indian'
+  if (q.includes('dessert') || q.includes('sweet') || q.includes('cake') || q.includes('मिठाई') || q.includes('मीठा') || q.includes('केक')) filters.category = 'dessert'
+  if (q.includes('chicken') || q.includes('चिकन')) filters.keyword = 'chicken'
+  if (q.includes('paneer') || q.includes('पनीर')) filters.keyword = 'paneer'
 
   return filters
 }
@@ -62,10 +62,23 @@ const SUGGESTIONS = [
   '🍔 Burgers under $12',
 ]
 
+const HINDI_SUGGESTIONS = SUGGESTIONS.map((_, index) => [
+  'मसालेदार चिकन',
+  '15 डॉलर से कम हेल्दी लंच',
+  'वेज विकल्प',
+  'सबसे अच्छा पिज्जा',
+  'हाई प्रोटीन मील',
+  '12 डॉलर से कम बर्गर',
+][index])
+
 export default function AISearchBar({ className = '' }) {
   const { ownerRestaurants } = useRestaurantOwner()
-  const allRestaurants = [...dummyRestaurants, ...ownerRestaurants]
-  const allFoods = [...dummyFoods, ...ownerRestaurants.flatMap(r => r.dishes || [])]
+  const { foods, restaurants } = useCatalog()
+  const allRestaurants = useMemo(() => [...restaurants, ...ownerRestaurants], [ownerRestaurants, restaurants])
+  const allFoods = useMemo(
+    () => [...foods, ...ownerRestaurants.flatMap(r => r.dishes || [])],
+    [foods, ownerRestaurants]
+  )
 
   const [query, setQuery] = useState('')
   const [results, setResults] = useState(null)
@@ -92,11 +105,11 @@ export default function AISearchBar({ className = '' }) {
 
   const handleVoice = () => {
     if (!('webkitSpeechRecognition' in window)) {
-      alert('Voice search not supported in this browser')
+      alert('इस ब्राउज़र में वॉइस सर्च समर्थित नहीं है')
       return
     }
     const recognition = new window.webkitSpeechRecognition()
-    recognition.lang = 'en-US'
+    recognition.lang = 'hi-IN'
     recognition.onstart = () => setIsListening(true)
     recognition.onend = () => setIsListening(false)
     recognition.onresult = (e) => setQuery(e.results[0][0].transcript)
@@ -133,7 +146,7 @@ export default function AISearchBar({ className = '' }) {
           value={query}
           onChange={e => setQuery(e.target.value)}
           onFocus={() => setIsFocused(true)}
-          placeholder='Try "spicy chicken", "vegan", "under $10"...'
+          placeholder='बोलें या लिखें: "मसालेदार चिकन", "वेज", "10 डॉलर से कम"...'
           className="flex-1 bg-transparent text-sm text-dark-900 dark:text-white placeholder-gray-400 focus:outline-none"
         />
         {query && (
@@ -155,7 +168,7 @@ export default function AISearchBar({ className = '' }) {
                 <FaHistory className="text-xs" /> Try searching for
               </p>
               <div className="flex flex-wrap gap-2">
-                {SUGGESTIONS.map(s => (
+                {HINDI_SUGGESTIONS.map(s => (
                   <button key={s} onClick={() => handleSuggestion(s)}
                     className="text-xs px-3 py-2 bg-gray-50 dark:bg-dark-800 hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-600 dark:text-gray-300 hover:text-primary-600 rounded-xl transition-colors font-medium">
                     {s}

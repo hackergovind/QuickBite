@@ -2,8 +2,8 @@ import React, { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { FaFilter, FaSearch, FaStar, FaClock, FaLeaf, FaTimes, FaChevronDown } from 'react-icons/fa'
 import RestaurantCard from '../components/RestaurantCard.jsx'
-import { restaurants as dummyRestaurants, foods } from '../data/dummyData.js'
 import { useRestaurantOwner } from '../contexts/RestaurantContext.jsx'
+import { useCatalog } from '../contexts/CatalogContext.jsx'
 
 const CATEGORIES = ['All', 'Burgers', 'Pizza', 'Sushi', 'Indian', 'Desserts', 'Healthy', 'Chinese', 'Mexican']
 const RATINGS = [
@@ -27,7 +27,8 @@ const SORTS = ['Recommended', 'Rating (High to Low)', 'Delivery Time', 'Name']
 
 export default function Restaurants() {
   const { ownerRestaurants } = useRestaurantOwner()
-  const allRestaurants = [...dummyRestaurants, ...ownerRestaurants]
+  const { restaurants, foods } = useCatalog()
+  const allRestaurants = [...restaurants, ...ownerRestaurants]
 
   const [showFiltersMobile, setShowFiltersMobile] = useState(false)
   const [search, setSearch] = useState('')
