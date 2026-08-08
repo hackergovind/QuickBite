@@ -241,8 +241,8 @@ export default function Restaurants() {
                 onClick={() => setCategory(cat)}
                 className={`px-5 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
                   category === cat
-                    ? 'bg-primary-500 text-white shadow-[0_8px_24px_rgba(249,115,22,0.45)]'
-                    : 'bg-white dark:bg-dark-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-700 hover:shadow-[0_8px_24px_rgba(249,115,22,0.15)] border border-gray-100 dark:border-dark-700'
+                    ? 'bg-primary-500 text-white shadow-md shadow-primary-500/20'
+                    : 'bg-white dark:bg-dark-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-700 border border-gray-100 dark:border-dark-700'
                 }`}
               >
                 {cat}
