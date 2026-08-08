@@ -1,44 +1,49 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaStore, FaUserCircle } from 'react-icons/fa'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaPhone, FaUserCircle, FaStore } from 'react-icons/fa'
 import { useAuth } from '../contexts/AuthContext.jsx'
 
 export default function Signup() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { signup } = useAuth()
+
+  const [role, setRole] = useState('customer') // customer, owner
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
-  const [role, setRole] = useState('customer')
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState({ name: '', email: '', password: '' })
 
-  const handleSubmit = async (e) => {
+  const from = location.state?.from?.pathname || '/'
+
+  const handleSignup = (e) => {
     e.preventDefault()
     setError('')
-
-    if (!formData.name || !formData.email || !formData.password) {
-      setError('Please fill in all fields')
-      return
-    }
-
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters')
-      return
-    }
-
+    if (!name || !email || !password) return setError('Please fill in all required fields')
+    
     setLoading(true)
-    const result = await signup(formData.name, formData.email, formData.password, role)
+    const result = signup(name, email, phone, password, role)
     setLoading(false)
+
     if (result.success) {
-      if (result.role === 'owner') {
-        navigate('/owner-dashboard')
-      } else {
-        navigate('/')
-      }
+      if (result.role === 'owner') navigate('/owner-dashboard', { replace: true })
+      else navigate(from, { replace: true })
     } else {
-      setError(result.error)
+      setError(result.error || result.message || 'Signup failed')
     }
   }
+
+  const handleGoogleSignup = () => {
+    setError('Google sign-up is not available yet')
+  }
+
+  const ROLES = [
+    { key: 'customer', label: 'Customer', icon: FaUserCircle, active: 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' },
+    { key: 'owner',    label: 'Restaurant Owner', icon: FaStore, active: 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400' },
+  ]
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-dark-950 flex items-center justify-center py-12 px-4 animate-fade-in transition-colors">
@@ -51,123 +56,96 @@ export default function Signup() {
           <p className="text-gray-500 dark:text-gray-400">Join QuickBite today</p>
         </div>
 
-        <div className="bg-white dark:bg-dark-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-dark-700">
+        <div className="bg-white dark:bg-dark-800 rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 dark:border-dark-700">
+          
           {/* Role Selector */}
           <div className="mb-6">
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 text-center">I want to join as</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 font-semibold uppercase tracking-wider text-center mb-3">Sign up as</p>
             <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setRole('customer')}
-                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all duration-200 ${
-                  role === 'customer'
-                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
-                    : 'border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 text-gray-500 hover:border-primary-300'
-                }`}
-              >
-                <FaUserCircle className="text-2xl" />
-                <span className="text-sm font-semibold">Customer</span>
-                <span className="text-xs text-center leading-tight opacity-70">Order food from restaurants</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole('owner')}
-                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all duration-200 ${
-                  role === 'owner'
-                    ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400'
-                    : 'border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 text-gray-500 hover:border-orange-300'
-                }`}
-              >
-                <FaStore className="text-2xl" />
-                <span className="text-sm font-semibold">Restaurant Owner</span>
-                <span className="text-xs text-center leading-tight opacity-70">List &amp; manage your restaurant</span>
-              </button>
+              {ROLES.map(({ key, label, icon: Icon, active }) => (
+                <button key={key} type="button" onClick={() => setRole(key)}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200 font-semibold ${
+                    role === key ? active : 'border-gray-100 dark:border-dark-700 text-gray-400 dark:text-gray-500 hover:border-gray-200 dark:hover:border-dark-600'
+                  }`}>
+                  <Icon className="text-2xl" />
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="flex items-center gap-3 mb-5">
-            <div className="flex-1 h-px bg-gray-100 dark:bg-dark-700" />
-            <span className="text-xs text-gray-400 font-medium">Fill in your details</span>
-            <div className="flex-1 h-px bg-gray-100 dark:bg-dark-700" />
-          </div>
+          {error && (
+            <div className="mb-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm p-3 rounded-xl border border-red-100 dark:border-red-800">
+              {error}
+            </div>
+          )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {error && (
-              <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm p-3 rounded-xl border border-red-100 dark:border-red-800">
-                {error}
-              </div>
-            )}
-
+          <form onSubmit={handleSignup} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name *</label>
               <div className="relative">
                 <FaUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder={role === 'owner' ? 'Owner Name' : 'John Doe'}
-                  className="input-field pl-10"
-                />
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)}
+                  placeholder="John Doe" className="input-field pl-10" />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email *</label>
               <div className="relative">
                 <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="you@example.com"
-                  className="input-field pl-10"
-                />
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com" className="input-field pl-10" />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
+              <div className="relative">
+                <FaPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+1 (555) 000-0000" className="input-field pl-10" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password *</label>
               <div className="relative">
                 <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  placeholder="••••••••"
-                  className="input-field pl-10 pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                >
+                <input type={showPassword ? 'text' : 'password'} value={password}
+                  onChange={(e) => setPassword(e.target.value)} placeholder="••••••••"
+                  className="input-field pl-10 pr-10" />
+                <button type="button" onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
               </div>
-              <p className="text-xs text-gray-400 mt-1">Must be at least 6 characters</p>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full justify-center py-3.5 rounded-xl font-semibold text-white transition-all duration-200 flex items-center gap-2 ${
-                role === 'owner'
-                  ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg shadow-orange-200 dark:shadow-orange-900/20'
-                  : 'btn-primary'
-              } disabled:opacity-60`}
-            >
-              {role === 'owner' ? <FaStore /> : <FaUserCircle />}
-              {loading ? 'Creating account...' : (role === 'owner' ? 'Create Owner Account' : 'Create Account')}
+            <button type="submit" disabled={loading}
+              className={`w-full justify-center py-3.5 rounded-xl font-bold text-white transition-all duration-200 flex items-center gap-2 mt-2 disabled:opacity-60 ${
+                role === 'owner' ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg shadow-orange-500/20'
+                : 'bg-primary-500 hover:bg-primary-600 shadow-lg shadow-primary-500/20'
+              }`}>
+              {loading ? 'Creating account...' : `Sign Up as ${role.charAt(0).toUpperCase() + role.slice(1)}`}
+            </button>
+
+            <div className="flex items-center gap-3 my-5">
+              <div className="flex-1 h-px bg-gray-100 dark:bg-dark-700" />
+              <span className="text-xs text-gray-400 font-medium">OR</span>
+              <div className="flex-1 h-px bg-gray-100 dark:bg-dark-700" />
+            </div>
+
+            <button type="button" onClick={handleGoogleSignup}
+              className="w-full flex items-center justify-center gap-3 bg-white dark:bg-dark-700 border border-gray-200 dark:border-dark-600 text-dark-900 dark:text-white font-semibold py-3.5 rounded-xl hover:bg-gray-50 dark:hover:bg-dark-600 transition-colors shadow-sm">
+              <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
+              Sign up with Google
             </button>
           </form>
 
           <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
             Already have an account?{' '}
-            <Link to="/login" className="text-primary-500 font-semibold hover:underline">
-              Sign in
-            </Link>
+            <Link to="/login" className="text-primary-500 font-semibold hover:underline">Log in</Link>
           </div>
         </div>
       </div>
