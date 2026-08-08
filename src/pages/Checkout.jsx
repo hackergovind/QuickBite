@@ -182,7 +182,7 @@ export default function Checkout() {
                     <div className="flex-1">
                       <p className="font-medium text-dark-900 dark:text-white line-clamp-1">{item.displayName || item.name}</p>
                     </div>
-                    <span className="font-bold text-dark-900 dark:text-white">${(item.price * item.quantity).toFixed(2)}</span>
+                    <span className="font-bold text-dark-900 dark:text-white">₹{(item.price * item.quantity).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
@@ -190,19 +190,19 @@ export default function Checkout() {
               <div className="border-t border-gray-100 dark:border-dark-700 pt-4 space-y-3 text-sm">
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
                   <span>Subtotal</span>
-                  <span className="font-medium text-dark-900 dark:text-white">${subtotal.toFixed(2)}</span>
+                  <span className="font-medium text-dark-900 dark:text-white">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
                   <span>Delivery Fee</span>
-                  <span className="font-medium text-dark-900 dark:text-white">${deliveryFee.toFixed(2)}</span>
+                  <span className="font-medium text-dark-900 dark:text-white">₹{deliveryFee.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
                   <span>Tax</span>
-                  <span className="font-medium text-dark-900 dark:text-white">${tax.toFixed(2)}</span>
+                  <span className="font-medium text-dark-900 dark:text-white">₹{tax.toFixed(2)}</span>
                 </div>
                 <div className="border-t border-gray-100 dark:border-dark-700 pt-3 mt-3 flex justify-between items-center">
                   <span className="text-base font-bold text-dark-900 dark:text-white">Total</span>
-                  <span className="text-2xl font-black text-primary-500">${total.toFixed(2)}</span>
+                  <span className="text-2xl font-black text-primary-500">₹{total.toFixed(2)}</span>
                 </div>
               </div>
 

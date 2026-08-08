@@ -42,7 +42,7 @@ export default function FoodCustomizer({ food, onConfirm, onClose }) {
           </button>
           <div className="absolute bottom-4 left-5">
             <h3 className="text-white font-bold text-lg">{food.name}</h3>
-            <p className="text-white/80 text-sm">${food.price.toFixed(2)}</p>
+            <p className="text-white/80 text-sm">₹{food.price.toFixed(2)}</p>
           </div>
         </div>
 
@@ -59,7 +59,7 @@ export default function FoodCustomizer({ food, onConfirm, onClose }) {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-sm font-bold text-primary-500">+$1.50</span>
+              <span className="text-sm font-bold text-primary-500">+₹1.50</span>
               <button
                 onClick={() => setExtraCheese(!extraCheese)}
                 className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${extraCheese ? 'bg-primary-500' : 'bg-gray-300 dark:bg-dark-600'}`}
@@ -113,7 +113,7 @@ export default function FoodCustomizer({ food, onConfirm, onClose }) {
             className="btn-primary w-full justify-between text-base py-4"
           >
             <span>Add to Cart</span>
-            <span className="font-black">${totalPrice.toFixed(2)}</span>
+            <span className="font-black">₹{totalPrice.toFixed(2)}</span>
           </button>
         </div>
       </div>

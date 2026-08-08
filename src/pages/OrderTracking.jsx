@@ -152,7 +152,7 @@ export default function OrderTracking() {
                         )}
                       </div>
                     </div>
-                    <span className="font-semibold text-dark-900 dark:text-white">${(item.price * item.quantity).toFixed(2)}</span>
+                    <span className="font-semibold text-dark-900 dark:text-white">₹{(item.price * item.quantity).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
@@ -160,23 +160,23 @@ export default function OrderTracking() {
               <div className="border-t border-gray-100 dark:border-dark-700 pt-3 space-y-2 text-sm">
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
                   <span>Subtotal</span>
-                  <span>${order.subtotal?.toFixed(2) || order.total.toFixed(2)}</span>
+                  <span>₹{order.subtotal?.toFixed(2) || order.total.toFixed(2)}</span>
                 </div>
                 {order.deliveryFee && (
                   <div className="flex justify-between text-gray-600 dark:text-gray-400">
                     <span>Delivery</span>
-                    <span>${order.deliveryFee.toFixed(2)}</span>
+                    <span>₹{order.deliveryFee.toFixed(2)}</span>
                   </div>
                 )}
                 {order.tax && (
                   <div className="flex justify-between text-gray-600 dark:text-gray-400">
                     <span>Tax</span>
-                    <span>${order.tax.toFixed(2)}</span>
+                    <span>₹{order.tax.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between font-bold text-base text-dark-900 dark:text-white pt-2 border-t border-gray-100 dark:border-dark-700 mt-2">
                   <span>Total</span>
-                  <span>${order.total.toFixed(2)}</span>
+                  <span>₹{order.total.toFixed(2)}</span>
                 </div>
               </div>
             </div>

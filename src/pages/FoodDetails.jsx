@@ -107,7 +107,7 @@ export default function FoodDetails() {
             </div>
 
             <div className="flex items-center gap-4 border-b border-gray-100 dark:border-dark-700 pb-6">
-              <span className="text-3xl font-black text-primary-500">${food.price.toFixed(2)}</span>
+              <span className="text-3xl font-black text-primary-500">₹{food.price.toFixed(2)}</span>
               <div className="h-8 w-px bg-gray-200 dark:bg-dark-700" />
               <div className="flex items-center gap-1.5 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-500 px-3 py-1.5 rounded-xl font-bold text-sm">
                 <FaStar className="text-yellow-500" /> {food.rating || 'New'}

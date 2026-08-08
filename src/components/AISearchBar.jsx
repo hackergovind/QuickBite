@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { FaSearch, FaMicrophone, FaTimes, FaHistory } from 'react-icons/fa'
-import { foods, restaurants } from '../data/dummyData.js'
+import { foods as dummyFoods, restaurants as dummyRestaurants } from '../data/dummyData.js'
 import { useNavigate } from 'react-router-dom'
+import { useRestaurantOwner } from '../contexts/RestaurantContext.jsx'
 
 // Simple NLP-style keyword matching
 function parseQuery(query) {
@@ -29,12 +30,12 @@ function parseQuery(query) {
   return filters
 }
 
-function getResults(query) {
+function getResults(query, allFoods, allRestaurants) {
   if (!query.trim()) return []
   const filters = parseQuery(query)
   const q = query.toLowerCase()
 
-  let foodResults = foods.filter(f => {
+  let foodResults = allFoods.filter(f => {
     if (filters.maxPrice && f.price > filters.maxPrice) return false
     if (filters.isVeg && !f.isVeg) return false
     if (filters.category && f.category !== filters.category) return false
@@ -45,7 +46,7 @@ function getResults(query) {
     return true
   }).slice(0, 4)
 
-  let restaurantResults = restaurants.filter(r =>
+  let restaurantResults = allRestaurants.filter(r =>
     r.name.toLowerCase().includes(q) || r.cuisine.toLowerCase().includes(q)
   ).slice(0, 2)
 
@@ -62,6 +63,10 @@ const SUGGESTIONS = [
 ]
 
 export default function AISearchBar({ className = '' }) {
+  const { ownerRestaurants } = useRestaurantOwner()
+  const allRestaurants = [...dummyRestaurants, ...ownerRestaurants]
+  const allFoods = [...dummyFoods, ...ownerRestaurants.flatMap(r => r.dishes || [])]
+
   const [query, setQuery] = useState('')
   const [results, setResults] = useState(null)
   const [isFocused, setIsFocused] = useState(false)
@@ -72,12 +77,12 @@ export default function AISearchBar({ className = '' }) {
 
   useEffect(() => {
     if (query.length > 1) {
-      const t = setTimeout(() => setResults(getResults(query)), 200)
+      const t = setTimeout(() => setResults(getResults(query, allFoods, allRestaurants)), 200)
       return () => clearTimeout(t)
     } else {
       setResults(null)
     }
-  }, [query])
+  }, [query, allFoods, allRestaurants])
 
   useEffect(() => {
     const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setIsFocused(false) }

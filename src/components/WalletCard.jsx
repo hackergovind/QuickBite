@@ -22,7 +22,7 @@ export default function WalletCard({ compact = false }) {
             <FaWallet className="text-2xl opacity-80" />
             <div>
               <p className="text-xs opacity-80">QuickBite Wallet</p>
-              <p className="text-xl font-black">${balance.toFixed(2)}</p>
+              <p className="text-xl font-black">₹{balance.toFixed(2)}</p>
             </div>
           </div>
           <div className="text-right">
@@ -39,7 +39,7 @@ export default function WalletCard({ compact = false }) {
       <div className="flex justify-between items-start mb-6">
         <div>
           <p className="text-xs uppercase tracking-widest opacity-70 font-medium">QuickBite Wallet</p>
-          <p className="text-4xl font-black mt-1">${balance.toFixed(2)}</p>
+          <p className="text-4xl font-black mt-1">₹{balance.toFixed(2)}</p>
         </div>
         <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
           <FaWallet className="text-xl" />

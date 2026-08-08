@@ -3,9 +3,9 @@ import { FaMotorcycle } from 'react-icons/fa'
 
 const PRESET_TIPS = [
   { label: 'No Tip', value: 0 },
-  { label: '$1', value: 1 },
-  { label: '$2', value: 2 },
-  { label: '$5', value: 5 },
+  { label: '₹10', value: 10 },
+  { label: '₹20', value: 20 },
+  { label: '₹50', value: 50 },
 ]
 
 export default function TipSelector({ tip, onChange }) {
@@ -69,7 +69,7 @@ export default function TipSelector({ tip, onChange }) {
 
       {isCustom && (
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">$</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">₹</span>
           <input
             type="number"
             min="0"
@@ -86,7 +86,7 @@ export default function TipSelector({ tip, onChange }) {
 
       {tip > 0 && (
         <p className="text-xs text-green-600 dark:text-green-400 font-medium">
-          🙏 Thanks for tipping ${tip.toFixed(2)}! Your rider will appreciate it.
+          🙏 Thanks for tipping ₹{tip.toFixed(2)}! Your rider will appreciate it.
         </p>
       )}
     </div>

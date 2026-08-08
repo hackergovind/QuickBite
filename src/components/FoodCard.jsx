@@ -123,7 +123,7 @@ export default function FoodCard({ food, showAddButton = true }) {
           </div>
 
           <div className="flex items-center justify-between pt-2">
-            <span className="text-lg font-bold text-dark-900 dark:text-white">${food.price.toFixed(2)}</span>
+            <span className="text-lg font-bold text-dark-900 dark:text-white">₹{food.price.toFixed(2)}</span>
 
             {showAddButton && !isSoldOut && (
               <div className="flex items-center">

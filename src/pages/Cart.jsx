@@ -61,7 +61,7 @@ export default function Cart() {
                   <div className="flex-grow min-w-0">
                     <div className="flex justify-between items-start gap-2">
                       <h3 className="font-bold text-dark-900 dark:text-white text-base sm:text-lg line-clamp-2">{item.displayName || item.name}</h3>
-                      <p className="font-bold text-primary-500 shrink-0">${(item.price * item.quantity).toFixed(2)}</p>
+                      <p className="font-bold text-primary-500 shrink-0">₹{(item.price * item.quantity).toFixed(2)}</p>
                     </div>
                     
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">{item.restaurantName || 'Restaurant'}</p>
@@ -109,32 +109,32 @@ export default function Cart() {
               <div className="space-y-3 text-sm border-t border-gray-100 dark:border-dark-700 pt-4">
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
                   <span>Subtotal</span>
-                  <span className="font-medium text-dark-900 dark:text-white">${subtotal.toFixed(2)}</span>
+                  <span className="font-medium text-dark-900 dark:text-white">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
                   <span>Delivery Fee</span>
-                  <span className="font-medium text-dark-900 dark:text-white">${deliveryFee.toFixed(2)}</span>
+                  <span className="font-medium text-dark-900 dark:text-white">₹{deliveryFee.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
                   <span>Tax (8%)</span>
-                  <span className="font-medium text-dark-900 dark:text-white">${tax.toFixed(2)}</span>
+                  <span className="font-medium text-dark-900 dark:text-white">₹{tax.toFixed(2)}</span>
                 </div>
                 {tip > 0 && (
                   <div className="flex justify-between text-gray-600 dark:text-gray-400">
                     <span>Courier Tip</span>
-                    <span className="font-medium text-dark-900 dark:text-white">${tip.toFixed(2)}</span>
+                    <span className="font-medium text-dark-900 dark:text-white">₹{tip.toFixed(2)}</span>
                   </div>
                 )}
                 {discount > 0 && (
                   <div className="flex justify-between text-green-600 dark:text-green-400 font-medium">
                     <span>Discount ({appliedCoupon?.code})</span>
-                    <span>-${discount.toFixed(2)}</span>
+                    <span>-₹{discount.toFixed(2)}</span>
                   </div>
                 )}
                 
                 <div className="border-t border-gray-100 dark:border-dark-700 pt-3 mt-3 flex justify-between items-center">
                   <span className="text-base font-bold text-dark-900 dark:text-white">Total</span>
-                  <span className="text-2xl font-black text-primary-500">${Math.max(0, finalTotal).toFixed(2)}</span>
+                  <span className="text-2xl font-black text-primary-500">₹{Math.max(0, finalTotal).toFixed(2)}</span>
                 </div>
               </div>
 

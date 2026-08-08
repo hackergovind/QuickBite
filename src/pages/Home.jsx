@@ -42,6 +42,10 @@ export default function Home() {
   const finalRecs = recommendedFoods.length > 0 ? recommendedFoods : topFoods
 
   const handleSurprise = () => {
+    if (!foods || foods.length === 0) {
+      alert("No food items available yet!")
+      return
+    }
     const randomFood = foods[Math.floor(Math.random() * foods.length)]
     navigate(`/food/${randomFood.id}`)
   }
@@ -51,7 +55,7 @@ export default function Home() {
       <HeroSection />
 
       {/* AI Search Section */}
-      <section className="py-8 bg-white dark:bg-dark-950 -mt-8 relative z-10 rounded-t-3xl">
+      <section className="py-8 bg-white dark:bg-dark-950 -mt-6 relative z-10 rounded-t-3xl">
         <div className="max-w-2xl mx-auto px-4 text-center">
           <h2 className="text-xl sm:text-2xl font-bold text-dark-900 dark:text-white mb-4">What are you craving? ✨</h2>
           <AISearchBar />
@@ -74,7 +78,7 @@ export default function Home() {
                   <img src={food.image} alt={food.name} className="w-16 h-16 rounded-xl object-cover" />
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-sm text-dark-900 dark:text-white truncate">{food.name}</p>
-                    <p className="text-xs text-primary-500 font-bold">${food.price.toFixed(2)}</p>
+                    <p className="text-xs text-primary-500 font-bold">₹{food.price.toFixed(2)}</p>
                   </div>
                   <button onClick={() => addToCart(food)} className="shrink-0 w-10 h-10 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-xl flex items-center justify-center hover:bg-primary-500 hover:text-white transition-colors">
                     <FaSync className="text-sm" />
@@ -87,9 +91,12 @@ export default function Home() {
       )}
 
       <Categories activeCategory="all" onCategoryChange={(id) => navigate(`/restaurants?category=${id}`)} />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <OfferBanner offer={offers[0]} />
-      </div>
+      
+      {offers && offers.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <OfferBanner offer={offers[0]} />
+        </div>
+      )}
 
       <MoodPicker onSelect={setSelectedMood} />
 
@@ -122,13 +129,19 @@ export default function Home() {
               <p className="text-gray-500 dark:text-gray-400 mt-1">Based on your taste</p>
             </div>
           </div>
-          <div className="flex overflow-x-auto hide-scrollbar gap-6 pb-4 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:overflow-visible">
-            {finalRecs.map(food => (
-              <div key={food.id} className="min-w-[260px] sm:min-w-0">
-                <FoodCard food={food} />
-              </div>
-            ))}
-          </div>
+          {finalRecs.length > 0 ? (
+            <div className="flex overflow-x-auto hide-scrollbar gap-6 pb-4 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:overflow-visible">
+              {finalRecs.map(food => (
+                <div key={food.id} className="min-w-[260px] sm:min-w-0">
+                  <FoodCard food={food} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-10 bg-gray-50 dark:bg-dark-800 rounded-2xl border border-gray-100 dark:border-dark-700">
+              <p className="text-gray-500 dark:text-gray-400">No recommended items available yet.</p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -140,40 +153,53 @@ export default function Home() {
               <h2 className="text-3xl font-black text-dark-900 dark:text-white">Popular Restaurants</h2>
               <p className="text-gray-500 dark:text-gray-400 mt-2">The best spots in your area</p>
             </div>
-            <Link to="/restaurants" className="hidden sm:flex items-center gap-2 text-primary-500 font-semibold hover:text-primary-600 transition-colors group">
-              View All <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
-            </Link>
+            {restaurants.length > 0 && (
+              <Link to="/restaurants" className="hidden sm:flex items-center gap-2 text-primary-500 font-semibold hover:text-primary-600 transition-colors group">
+                View All <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
+              </Link>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {restaurants.slice(0, 3).map((restaurant) => (
-              <Link key={restaurant.id} to={`/restaurant/${restaurant.id}`} className="card group">
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src={restaurant.image}
-                    alt={restaurant.name}
-                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-                    loading="lazy"
-                  />
-                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-bold text-dark-900 shadow-lg flex items-center gap-1">
-                    <FaStar className="text-yellow-400" /> {restaurant.rating}
+          {restaurants.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {restaurants.slice(0, 3).map((restaurant) => (
+                <Link key={restaurant.id} to={`/restaurant/${restaurant.id}`} className="card group">
+                  <div className="relative h-48 overflow-hidden">
+                    <img
+                      src={restaurant.image}
+                      alt={restaurant.name}
+                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-bold text-dark-900 shadow-lg flex items-center gap-1">
+                      <FaStar className="text-yellow-400" /> {restaurant.rating}
+                    </div>
                   </div>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-dark-900 dark:text-white mb-2 group-hover:text-primary-500 transition-colors">{restaurant.name}</h3>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">{restaurant.cuisine}</p>
-                  <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
-                    <span className="flex items-center gap-1.5 bg-gray-50 dark:bg-dark-700 px-3 py-1.5 rounded-lg"><FaMotorcycle className="text-primary-500" /> {restaurant.deliveryTime}</span>
-                    <span className="flex items-center gap-1.5 bg-gray-50 dark:bg-dark-700 px-3 py-1.5 rounded-lg text-primary-500 font-semibold">Free Delivery</span>
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-dark-900 dark:text-white mb-2 group-hover:text-primary-500 transition-colors">{restaurant.name}</h3>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">{restaurant.cuisine}</p>
+                    <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
+                      <span className="flex items-center gap-1.5 bg-gray-50 dark:bg-dark-700 px-3 py-1.5 rounded-lg"><FaMotorcycle className="text-primary-500" /> {restaurant.deliveryTime}</span>
+                      <span className="flex items-center gap-1.5 bg-gray-50 dark:bg-dark-700 px-3 py-1.5 rounded-lg text-primary-500 font-semibold">Free Delivery</span>
+                    </div>
                   </div>
-                </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-white dark:bg-dark-800 rounded-3xl border border-gray-100 dark:border-dark-700">
+              <p className="text-gray-500 dark:text-gray-400 mb-4">No restaurants available.</p>
+              <Link to="/owner-dashboard" className="btn-primary">
+                Add Your Restaurant
               </Link>
-            ))}
-          </div>
+            </div>
+          )}
           
-          <Link to="/restaurants" className="sm:hidden mt-6 btn-outline w-full justify-center">
-            View All Restaurants
-          </Link>
+          {restaurants.length > 0 && (
+            <Link to="/restaurants" className="sm:hidden mt-6 btn-outline w-full justify-center">
+              View All Restaurants
+            </Link>
+          )}
         </div>
       </section>
 

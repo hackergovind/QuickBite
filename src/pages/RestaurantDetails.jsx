@@ -38,7 +38,7 @@ export default function RestaurantDetails() {
   const isFav = isFavoriteRestaurant(id)
   
   // Menu logic
-  const menu = restaurant.dishes || foods.filter(f => f.restaurantId === id)
+  const menu = restaurant.dishes || []
   const categories = ['all', ...new Set(menu.map(f => f.category || 'other'))]
 
   let filteredMenu = menu
