@@ -25,6 +25,22 @@ export function RestaurantProvider({ children }) {
     saveToStorage(ownerRestaurants)
   }, [ownerRestaurants])
 
+  // Sync across tabs
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === STORAGE_KEY) {
+        try {
+          const newData = e.newValue ? JSON.parse(e.newValue) : []
+          setOwnerRestaurants(newData)
+        } catch {
+          // ignore
+        }
+      }
+    }
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [])
+
   // Create a new restaurant for a given owner
   const addRestaurant = useCallback((ownerId, data) => {
     const restaurant = {
