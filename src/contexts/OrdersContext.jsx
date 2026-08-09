@@ -52,25 +52,44 @@ export function OrdersProvider({ children }) {
   }, [orders])
 
   /** Place a new order (called from Checkout) */
-  const placeOrder = useCallback(({ cartItems, totalAmount, deliveryFee, tax, restaurantId, restaurantName, customerId, customerName, customerAddress }) => {
+  const placeOrder = useCallback(({ cartItems, totalAmount, deliveryFee, tax, total, restaurantId, restaurantName, customerId, customerName, customerAddress, paymentMethod, address }) => {
     const order = {
       id: `ord-${Date.now()}`,
       restaurantId,
-      restaurantName,
+      restaurantName: restaurantName || 'Restaurant',
       customerId,
-      customerName,
-      customerAddress: customerAddress || 'Not provided',
-      items: cartItems.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity, image: i.image })),
+      customerName: customerName || 'Customer',
+      customerAddress: customerAddress || address || 'Not provided',
+      items: cartItems.map(i => ({ id: i.id, name: i.displayName || i.name, price: i.price, quantity: i.quantity, image: i.image })),
       subtotal: totalAmount,
       deliveryFee,
       tax,
-      total: totalAmount + deliveryFee + tax,
+      total: total ?? totalAmount + deliveryFee + tax,
       status: ORDER_STATUS.PENDING,
+      paymentMethod,
       placedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
     setOrders(prev => [order, ...prev])
     return order.id
+  }, [])
+
+  const addOrder = useCallback((order) => {
+    const normalizedOrder = {
+      ...order,
+      id: order.id || `ord-${Date.now()}`,
+      restaurantName: order.restaurantName || 'Restaurant',
+      customerName: order.customerName || 'Customer',
+      customerAddress: order.customerAddress || order.address || 'Not provided',
+      subtotal: order.subtotal ?? order.total ?? 0,
+      deliveryFee: order.deliveryFee ?? 0,
+      tax: order.tax ?? 0,
+      placedAt: order.placedAt || order.date || new Date().toISOString(),
+      updatedAt: order.updatedAt || new Date().toISOString(),
+      items: (order.items || []).map(i => ({ ...i, name: i.displayName || i.name })),
+    }
+    setOrders(prev => [normalizedOrder, ...prev])
+    return normalizedOrder.id
   }, [])
 
   /** Update status of an order (called from owner dashboard) */
@@ -94,7 +113,7 @@ export function OrdersProvider({ children }) {
   const getAllOrders = useCallback(() => orders, [orders])
 
   return (
-    <OrdersContext.Provider value={{ orders, placeOrder, updateOrderStatus, getOrdersByRestaurant, getAllOrders }}>
+    <OrdersContext.Provider value={{ orders, placeOrder, addOrder, updateOrderStatus, getOrdersByRestaurant, getAllOrders }}>
       {children}
     </OrdersContext.Provider>
   )

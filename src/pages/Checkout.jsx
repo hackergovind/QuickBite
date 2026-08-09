@@ -1,20 +1,24 @@
 import React, { useState } from 'react'
-import { Link, useNavigate, Navigate } from 'react-router-dom'
+import { useNavigate, Navigate } from 'react-router-dom'
 import { FaArrowLeft, FaMapMarkerAlt, FaCreditCard, FaMoneyBillWave, FaLock, FaCheckCircle } from 'react-icons/fa'
 import { useCart } from '../contexts/CartContext.jsx'
 import { useOrders } from '../contexts/OrdersContext.jsx'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { useWallet } from '../contexts/WalletContext.jsx'
+import { useCatalog } from '../contexts/CatalogContext.jsx'
+import { useRestaurantOwner } from '../contexts/RestaurantContext.jsx'
 
 export default function Checkout() {
   const navigate = useNavigate()
   const { cartItems, totalAmount, clearCart } = useCart()
-  const { addOrder } = useOrders()
+  const { placeOrder } = useOrders()
   const { user } = useAuth()
   const { balance } = useWallet()
+  const { restaurants } = useCatalog()
+  const { ownerRestaurants } = useRestaurantOwner()
 
   const [paymentMethod, setPaymentMethod] = useState('card')
-  const [address, setAddress] = useState('123 Main St, Apt 4B')
+  const [address] = useState('123 Main St, Apt 4B')
   const [isProcessing, setIsProcessing] = useState(false)
   const [success, setSuccess] = useState(false)
   const [orderId, setOrderId] = useState(null)
@@ -34,22 +38,23 @@ export default function Checkout() {
     
     // Simulate API call and payment processing
     setTimeout(() => {
-      const newOrder = {
-        id: `ord_${Math.random().toString(36).substr(2, 9)}`,
-        customerId: user?.id,
-        items: [...cartItems],
-        total,
-        subtotal,
-        tax,
+      const restaurantId = cartItems[0]?.restaurantId || 'unknown-restaurant'
+      const restaurant = [...restaurants, ...ownerRestaurants].find(r => r.id === restaurantId)
+      const newOrderId = placeOrder({
+        cartItems,
+        restaurantId,
+        restaurantName: restaurant?.name || cartItems[0]?.restaurantName || 'Restaurant',
+        customerId: user?.id || 'guest',
+        customerName: user?.name || 'Customer',
+        customerAddress: address,
+        totalAmount: subtotal,
         deliveryFee,
-        status: 'pending',
-        date: new Date().toISOString(),
+        tax,
+        total,
         paymentMethod,
-        address
-      }
+      })
       
-      addOrder(newOrder)
-      setOrderId(newOrder.id)
+      setOrderId(newOrderId)
       clearCart()
       setIsProcessing(false)
       setSuccess(true)

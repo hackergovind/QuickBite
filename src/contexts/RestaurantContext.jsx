@@ -7,7 +7,7 @@ const STORAGE_KEY = 'cravedrop_owner_restaurants'
 function loadFromStorage() {
   try {
     const data = localStorage.getItem(STORAGE_KEY)
-    return data ? JSON.parse(data) : []
+    return data ? JSON.parse(data).map(normalizeRestaurant) : []
   } catch {
     return []
   }
@@ -15,6 +15,24 @@ function loadFromStorage() {
 
 function saveToStorage(data) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+}
+
+function parseNumber(value, fallback = 0) {
+  const parsed = parseFloat(value)
+  return Number.isFinite(parsed) ? parsed : fallback
+}
+
+function normalizeRestaurant(restaurant) {
+  return {
+    ...restaurant,
+    dishes: Array.isArray(restaurant?.dishes) ? restaurant.dishes : [],
+    deliveryFee: parseNumber(restaurant?.deliveryFee),
+    minOrder: parseNumber(restaurant?.minOrder),
+    rating: restaurant?.rating ?? 0,
+    reviewCount: restaurant?.reviewCount ?? 0,
+    isOpen: restaurant?.isOpen ?? true,
+    isOwnerCreated: restaurant?.isOwnerCreated ?? true,
+  }
 }
 
 export function RestaurantProvider({ children }) {
@@ -34,13 +52,14 @@ export function RestaurantProvider({ children }) {
       description: data.description || '',
       cuisine: data.cuisine || 'Multi-Cuisine',
       deliveryTime: data.deliveryTime || '30–45 min',
-      deliveryFee: parseFloat(data.deliveryFee) || 0,
-      minOrder: parseFloat(data.minOrder) || 0,
+      deliveryFee: parseNumber(data.deliveryFee),
+      minOrder: parseNumber(data.minOrder),
       image: data.image || '',
       badge: 'New',
       category: data.category || 'all',
       rating: 0,
       reviewCount: 0,
+      isOpen: true,
       phone: data.phone || '',
       address: data.address || '',
       dishes: [],
@@ -61,12 +80,13 @@ export function RestaurantProvider({ children }) {
               description: data.description ?? r.description,
               cuisine: data.cuisine ?? r.cuisine,
               deliveryTime: data.deliveryTime ?? r.deliveryTime,
-              deliveryFee: data.deliveryFee !== undefined ? parseFloat(data.deliveryFee) : r.deliveryFee,
-              minOrder: data.minOrder !== undefined ? parseFloat(data.minOrder) : r.minOrder,
+              deliveryFee: data.deliveryFee !== undefined ? parseNumber(data.deliveryFee, r.deliveryFee) : r.deliveryFee,
+              minOrder: data.minOrder !== undefined ? parseNumber(data.minOrder, r.minOrder) : r.minOrder,
               image: data.image ?? r.image,
               phone: data.phone ?? r.phone,
               address: data.address ?? r.address,
               category: data.category ?? r.category,
+              dishes: Array.isArray(r.dishes) ? r.dishes : [],
             }
           : r
       )
@@ -80,7 +100,7 @@ export function RestaurantProvider({ children }) {
       restaurantId,
       name: dish.name || 'New Dish',
       description: dish.description || '',
-      price: parseFloat(dish.price) || 0,
+      price: parseNumber(dish.price),
       image: dish.image || '',
       category: dish.category || 'other',
       rating: 0,
@@ -92,7 +112,7 @@ export function RestaurantProvider({ children }) {
     setOwnerRestaurants(prev =>
       prev.map(r =>
         r.id === restaurantId
-          ? { ...r, dishes: [...r.dishes, newDish] }
+          ? { ...r, dishes: [...(Array.isArray(r.dishes) ? r.dishes : []), newDish] }
           : r
       )
     )
@@ -105,8 +125,8 @@ export function RestaurantProvider({ children }) {
         r.id === restaurantId
           ? {
               ...r,
-              dishes: r.dishes.map(d =>
-                d.id === dishId ? { ...d, ...data, price: parseFloat(data.price) || d.price } : d
+              dishes: (Array.isArray(r.dishes) ? r.dishes : []).map(d =>
+                d.id === dishId ? { ...d, ...data, price: parseNumber(data.price, d.price), calories: parseInt(data.calories) || 0 } : d
               ),
             }
           : r
@@ -119,7 +139,7 @@ export function RestaurantProvider({ children }) {
     setOwnerRestaurants(prev =>
       prev.map(r =>
         r.id === restaurantId
-          ? { ...r, dishes: r.dishes.filter(d => d.id !== dishId) }
+          ? { ...r, dishes: (Array.isArray(r.dishes) ? r.dishes : []).filter(d => d.id !== dishId) }
           : r
       )
     )

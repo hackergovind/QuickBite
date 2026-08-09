@@ -37,3 +37,56 @@ CREATE TRIGGER users_set_updated_at
 BEFORE UPDATE ON users
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
+
+DO $$
+BEGIN
+  CREATE TYPE order_status AS ENUM (
+    'pending',
+    'confirmed',
+    'preparing',
+    'out_for_delivery',
+    'delivered',
+    'cancelled'
+  );
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+CREATE TABLE IF NOT EXISTS orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  customer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  customer_name TEXT NOT NULL,
+  customer_address TEXT,
+  restaurant_id TEXT NOT NULL,
+  restaurant_name TEXT NOT NULL,
+  restaurant_owner_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  subtotal NUMERIC(10, 2) NOT NULL DEFAULT 0,
+  delivery_fee NUMERIC(10, 2) NOT NULL DEFAULT 0,
+  tax NUMERIC(10, 2) NOT NULL DEFAULT 0,
+  total NUMERIC(10, 2) NOT NULL DEFAULT 0,
+  payment_method TEXT,
+  status order_status NOT NULL DEFAULT 'pending',
+  placed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS order_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  item_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  price NUMERIC(10, 2) NOT NULL,
+  quantity INTEGER NOT NULL CHECK (quantity > 0),
+  image TEXT
+);
+
+CREATE INDEX IF NOT EXISTS orders_customer_id_idx ON orders (customer_id, placed_at DESC);
+CREATE INDEX IF NOT EXISTS orders_restaurant_id_idx ON orders (restaurant_id, placed_at DESC);
+CREATE INDEX IF NOT EXISTS orders_restaurant_owner_id_idx ON orders (restaurant_owner_id, placed_at DESC);
+CREATE INDEX IF NOT EXISTS orders_status_idx ON orders (status);
+
+DROP TRIGGER IF EXISTS orders_set_updated_at ON orders;
+CREATE TRIGGER orders_set_updated_at
+BEFORE UPDATE ON orders
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at();

@@ -5,6 +5,7 @@ import { env } from './config/env.js'
 import { apiLimiter } from './middleware/rateLimit.js'
 import authRoutes from './routes/authRoutes.js'
 import catalogRoutes from './routes/catalogRoutes.js'
+import orderRoutes from './routes/orderRoutes.js'
 
 const app = express()
 
@@ -20,6 +21,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRoutes)
 app.use('/api/catalog', catalogRoutes)
+app.use('/api/orders', orderRoutes)
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' })

@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
-import { FaFilter, FaSearch, FaStar, FaClock, FaLeaf, FaTimes, FaChevronDown } from 'react-icons/fa'
+import { FaFilter, FaSearch, FaLeaf, FaTimes, FaChevronDown } from 'react-icons/fa'
 import RestaurantCard from '../components/RestaurantCard.jsx'
 import { useRestaurantOwner } from '../contexts/RestaurantContext.jsx'
 import { useCatalog } from '../contexts/CatalogContext.jsx'
@@ -117,7 +116,7 @@ export default function Restaurants() {
     })
 
     return result
-  }, [allRestaurants, search, category, rating, prices, time, freeDelivery, openNow, vegOnly, sortBy])
+  }, [allRestaurants, search, category, rating, prices, time, freeDelivery, openNow, vegOnly, sortBy, foods])
 
   const FilterPanel = () => (
     <div className="space-y-6">

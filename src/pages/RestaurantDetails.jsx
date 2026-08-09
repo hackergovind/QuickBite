@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { FaStar, FaClock, FaMotorcycle, FaArrowLeft, FaMapMarkerAlt, FaPhone, FaHeart, FaShare } from 'react-icons/fa'
+import { FaStar, FaClock, FaArrowLeft, FaMapMarkerAlt, FaHeart, FaShare } from 'react-icons/fa'
 import FoodCard from '../components/FoodCard.jsx'
 import ReviewCard from '../components/ReviewCard.jsx'
 import ReviewForm from '../components/ReviewForm.jsx'
@@ -16,7 +16,7 @@ export default function RestaurantDetails() {
   const { isFavoriteRestaurant, toggleFavoriteRestaurant } = useFavorites()
   const { getReviewsByRestaurant } = useReviews()
   const { ownerRestaurants } = useRestaurantOwner()
-  const { restaurants } = useCatalog()
+  const { foods, restaurants } = useCatalog()
 
   const [activeTab, setActiveTab] = useState('menu')
   const [selectedCategory, setSelectedCategory] = useState('all')
@@ -39,7 +39,9 @@ export default function RestaurantDetails() {
   const isFav = isFavoriteRestaurant(id)
   
   // Menu logic
-  const menu = restaurant.dishes || []
+  const menu = restaurant.isOwnerCreated
+    ? restaurant.dishes || []
+    : foods.filter(food => food.restaurantId === restaurant.id)
   const categories = ['all', ...new Set(menu.map(f => f.category || 'other'))]
 
   let filteredMenu = menu

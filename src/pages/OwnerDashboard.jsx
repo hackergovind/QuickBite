@@ -6,7 +6,7 @@ import {
   FaClock, FaMotorcycle, FaMapMarkerAlt, FaPhone,
   FaLeaf, FaDrumstickBite, FaTag, FaChartBar, FaSignOutAlt,
   FaBolt, FaShoppingBag, FaWallet, FaArrowUp, FaUser,
-  FaCheck, FaTruck, FaBan, FaClipboardList, FaChevronDown
+  FaCheck, FaBan, FaClipboardList, FaChevronDown
 } from 'react-icons/fa'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { useRestaurantOwner } from '../contexts/RestaurantContext.jsx'
@@ -200,7 +200,7 @@ const inputCls = "w-full bg-white border border-gray-200 rounded-xl px-4 py-3 te
 const selectCls = "w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-dark-900 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all text-sm"
 
 // Dish form modal
-function DishFormModal({ dish, restaurantId, onClose, onSave }) {
+function DishFormModal({ dish, onClose, onSave }) {
   const [form, setForm] = useState(
     dish
       ? { ...dish }
@@ -466,6 +466,7 @@ export default function OwnerDashboard() {
       updateRestaurant(ownerRestaurant.id, profileForm)
     } else {
       addRestaurant(user.id, profileForm)
+      setActiveTab('menu')
     }
     setSaveStatus('saved')
     setTimeout(() => setSaveStatus(null), 2500)
@@ -481,6 +482,7 @@ export default function OwnerDashboard() {
     if (!ownerRestaurant || !editingDish) return
     updateDish(ownerRestaurant.id, editingDish.id, form)
     setEditingDish(null)
+    setShowDishModal(false)
   }
 
   const handleDeleteDish = (dishId) => {
@@ -501,7 +503,6 @@ export default function OwnerDashboard() {
 
   const dishes = ownerRestaurant?.dishes || []
   const totalDishes = dishes.length
-  const vegCount = dishes.filter(d => d.isVeg).length
 
   const TABS = [
     { id: 'overview',  label: 'Overview',            icon: <FaChartBar /> },
@@ -1049,7 +1050,6 @@ export default function OwnerDashboard() {
       {showDishModal && ownerRestaurant && (
         <DishFormModal
           dish={editingDish}
-          restaurantId={ownerRestaurant.id}
           onClose={() => { setShowDishModal(false); setEditingDish(null) }}
           onSave={editingDish ? handleEditDish : handleAddDish}
         />
