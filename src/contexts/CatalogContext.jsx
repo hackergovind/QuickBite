@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { apiRequest } from '../lib/api.js'
+import { useRestaurantOwner } from './RestaurantContext.jsx'
 
 const CatalogContext = createContext(null)
 
@@ -16,6 +17,7 @@ const EMPTY_CATALOG = {
 }
 
 export function CatalogProvider({ children }) {
+  const { ownerRestaurants } = useRestaurantOwner()
   const [catalog, setCatalog] = useState(EMPTY_CATALOG)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -24,30 +26,11 @@ export function CatalogProvider({ children }) {
     setIsLoading(true)
     setError('')
 
-    const localOwnerData = localStorage.getItem('cravedrop_owner_restaurants')
-    const ownerRestaurants = localOwnerData ? JSON.parse(localOwnerData) : []
-    const ownerFoods = ownerRestaurants.flatMap(r => r.dishes || [])
-
     try {
       const data = await apiRequest('/catalog')
-      
-      const mergedRestaurants = [...(data.restaurants || []), ...ownerRestaurants]
-      const mergedFoods = [...(data.foods || []), ...ownerFoods]
-
-      setCatalog({ 
-        ...EMPTY_CATALOG, 
-        ...data, 
-        restaurants: mergedRestaurants, 
-        foods: mergedFoods 
-      })
+      setCatalog({ ...EMPTY_CATALOG, ...data })
     } catch (err) {
       setError(err.message || 'Unable to load catalog')
-      // Fallback to only owner restaurants if API fails
-      setCatalog({
-        ...EMPTY_CATALOG,
-        restaurants: ownerRestaurants,
-        foods: ownerFoods
-      })
     } finally {
       setIsLoading(false)
     }
@@ -57,33 +40,14 @@ export function CatalogProvider({ children }) {
     let isMounted = true
 
     async function loadCatalog() {
-      const localOwnerData = localStorage.getItem('cravedrop_owner_restaurants')
-      const ownerRestaurants = localOwnerData ? JSON.parse(localOwnerData) : []
-      const ownerFoods = ownerRestaurants.flatMap(r => r.dishes || [])
-
       try {
         const data = await apiRequest('/catalog')
-        
-        const mergedRestaurants = [...(data.restaurants || []), ...ownerRestaurants]
-        const mergedFoods = [...(data.foods || []), ...ownerFoods]
-
         if (isMounted) {
-          setCatalog({ 
-            ...EMPTY_CATALOG, 
-            ...data, 
-            restaurants: mergedRestaurants, 
-            foods: mergedFoods 
-          })
+          setCatalog({ ...EMPTY_CATALOG, ...data })
         }
       } catch (err) {
         if (isMounted) {
           setError(err.message || 'Unable to load catalog')
-          // Fallback to only owner restaurants if API fails
-          setCatalog({
-            ...EMPTY_CATALOG,
-            restaurants: ownerRestaurants,
-            foods: ownerFoods
-          })
         }
       } finally {
         if (isMounted) setIsLoading(false)
@@ -97,12 +61,17 @@ export function CatalogProvider({ children }) {
     }
   }, [])
 
-  const value = useMemo(() => ({
-    ...catalog,
-    isLoading,
-    error,
-    refreshCatalog
-  }), [catalog, error, isLoading, refreshCatalog])
+  const value = useMemo(() => {
+    const ownerFoods = ownerRestaurants.flatMap(r => r.dishes || [])
+    return {
+      ...catalog,
+      restaurants: [...(catalog.restaurants || []), ...ownerRestaurants],
+      foods: [...(catalog.foods || []), ...ownerFoods],
+      isLoading,
+      error,
+      refreshCatalog
+    }
+  }, [catalog, ownerRestaurants, isLoading, error, refreshCatalog])
 
   return (
     <CatalogContext.Provider value={value}>
