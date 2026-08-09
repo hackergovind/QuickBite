@@ -24,14 +24,14 @@ export function CatalogProvider({ children }) {
     setIsLoading(true)
     setError('')
 
+    const localOwnerData = localStorage.getItem('cravedrop_owner_restaurants')
+    const ownerRestaurants = localOwnerData ? JSON.parse(localOwnerData) : []
+    const ownerFoods = ownerRestaurants.flatMap(r => r.dishes || [])
+
     try {
       const data = await apiRequest('/catalog')
-
-      const localOwnerData = localStorage.getItem('cravedrop_owner_restaurants')
-      const ownerRestaurants = localOwnerData ? JSON.parse(localOwnerData) : []
       
       const mergedRestaurants = [...(data.restaurants || []), ...ownerRestaurants]
-      const ownerFoods = ownerRestaurants.flatMap(r => r.dishes || [])
       const mergedFoods = [...(data.foods || []), ...ownerFoods]
 
       setCatalog({ 
@@ -42,6 +42,12 @@ export function CatalogProvider({ children }) {
       })
     } catch (err) {
       setError(err.message || 'Unable to load catalog')
+      // Fallback to only owner restaurants if API fails
+      setCatalog({
+        ...EMPTY_CATALOG,
+        restaurants: ownerRestaurants,
+        foods: ownerFoods
+      })
     } finally {
       setIsLoading(false)
     }
@@ -51,14 +57,14 @@ export function CatalogProvider({ children }) {
     let isMounted = true
 
     async function loadCatalog() {
+      const localOwnerData = localStorage.getItem('cravedrop_owner_restaurants')
+      const ownerRestaurants = localOwnerData ? JSON.parse(localOwnerData) : []
+      const ownerFoods = ownerRestaurants.flatMap(r => r.dishes || [])
+
       try {
         const data = await apiRequest('/catalog')
         
-        const localOwnerData = localStorage.getItem('cravedrop_owner_restaurants')
-        const ownerRestaurants = localOwnerData ? JSON.parse(localOwnerData) : []
-        
         const mergedRestaurants = [...(data.restaurants || []), ...ownerRestaurants]
-        const ownerFoods = ownerRestaurants.flatMap(r => r.dishes || [])
         const mergedFoods = [...(data.foods || []), ...ownerFoods]
 
         if (isMounted) {
@@ -70,7 +76,15 @@ export function CatalogProvider({ children }) {
           })
         }
       } catch (err) {
-        if (isMounted) setError(err.message || 'Unable to load catalog')
+        if (isMounted) {
+          setError(err.message || 'Unable to load catalog')
+          // Fallback to only owner restaurants if API fails
+          setCatalog({
+            ...EMPTY_CATALOG,
+            restaurants: ownerRestaurants,
+            foods: ownerFoods
+          })
+        }
       } finally {
         if (isMounted) setIsLoading(false)
       }
