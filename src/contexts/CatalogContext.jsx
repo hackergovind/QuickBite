@@ -26,7 +26,20 @@ export function CatalogProvider({ children }) {
 
     try {
       const data = await apiRequest('/catalog')
-      setCatalog({ ...EMPTY_CATALOG, ...data })
+
+      const localOwnerData = localStorage.getItem('cravedrop_owner_restaurants')
+      const ownerRestaurants = localOwnerData ? JSON.parse(localOwnerData) : []
+      
+      const mergedRestaurants = [...(data.restaurants || []), ...ownerRestaurants]
+      const ownerFoods = ownerRestaurants.flatMap(r => r.dishes || [])
+      const mergedFoods = [...(data.foods || []), ...ownerFoods]
+
+      setCatalog({ 
+        ...EMPTY_CATALOG, 
+        ...data, 
+        restaurants: mergedRestaurants, 
+        foods: mergedFoods 
+      })
     } catch (err) {
       setError(err.message || 'Unable to load catalog')
     } finally {
@@ -40,7 +53,22 @@ export function CatalogProvider({ children }) {
     async function loadCatalog() {
       try {
         const data = await apiRequest('/catalog')
-        if (isMounted) setCatalog({ ...EMPTY_CATALOG, ...data })
+        
+        const localOwnerData = localStorage.getItem('cravedrop_owner_restaurants')
+        const ownerRestaurants = localOwnerData ? JSON.parse(localOwnerData) : []
+        
+        const mergedRestaurants = [...(data.restaurants || []), ...ownerRestaurants]
+        const ownerFoods = ownerRestaurants.flatMap(r => r.dishes || [])
+        const mergedFoods = [...(data.foods || []), ...ownerFoods]
+
+        if (isMounted) {
+          setCatalog({ 
+            ...EMPTY_CATALOG, 
+            ...data, 
+            restaurants: mergedRestaurants, 
+            foods: mergedFoods 
+          })
+        }
       } catch (err) {
         if (isMounted) setError(err.message || 'Unable to load catalog')
       } finally {
