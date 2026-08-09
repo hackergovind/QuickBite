@@ -1,39 +1,51 @@
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
-DO $$
-BEGIN
-  CREATE TYPE user_role AS ENUM ('customer', 'owner', 'rider', 'admin');
-EXCEPTION
-  WHEN duplicate_object THEN NULL;
-END $$;
-
+-- Users table
 CREATE TABLE IF NOT EXISTS users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
-  email TEXT NOT NULL UNIQUE,
+  email TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
-  role user_role NOT NULL DEFAULT 'customer',
-  avatar_url TEXT DEFAULT 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-  phone TEXT,
-  address TEXT,
-  last_login_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  phone TEXT DEFAULT '',
+  address TEXT DEFAULT '',
+  role TEXT DEFAULT 'customer',
+  avatar_url TEXT DEFAULT '',
+  status TEXT DEFAULT 'active',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  last_login_at TIMESTAMPTZ
 );
 
-CREATE INDEX IF NOT EXISTS users_role_idx ON users (role);
-CREATE INDEX IF NOT EXISTS users_created_at_idx ON users (created_at DESC);
+-- Restaurants table
+CREATE TABLE IF NOT EXISTS restaurants (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  cuisine TEXT DEFAULT 'Multi-Cuisine',
+  delivery_time TEXT DEFAULT '30-45 min',
+  delivery_fee NUMERIC DEFAULT 0,
+  min_order NUMERIC DEFAULT 0,
+  image TEXT DEFAULT '',
+  phone TEXT DEFAULT '',
+  address TEXT DEFAULT '',
+  category TEXT DEFAULT 'other',
+  badge TEXT DEFAULT 'New',
+  rating NUMERIC DEFAULT 0,
+  review_count INTEGER DEFAULT 0,
+  is_open BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-CREATE OR REPLACE FUNCTION set_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS users_set_updated_at ON users;
-CREATE TRIGGER users_set_updated_at
-BEFORE UPDATE ON users
-FOR EACH ROW
-EXECUTE FUNCTION set_updated_at();
+-- Dishes table  
+CREATE TABLE IF NOT EXISTS dishes (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  restaurant_id UUID REFERENCES restaurants(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  price NUMERIC NOT NULL DEFAULT 0,
+  image TEXT DEFAULT '',
+  category TEXT DEFAULT 'other',
+  is_veg BOOLEAN DEFAULT false,
+  calories INTEGER DEFAULT 0,
+  rating NUMERIC DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);

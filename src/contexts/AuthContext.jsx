@@ -1,12 +1,9 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import { supabase } from '../lib/supabase.js'
+import React, { createContext, useContext, useState, useCallback } from 'react'
+import { apiRequest, storeSession, clearSession, getStoredSession } from '../lib/api.js'
 
 const AuthContext = createContext(null)
-
 const SESSION_KEY = 'cravedrop_user'
 
-const ADMIN_EMAIL = 'admin@quickbite.com'
-const ADMIN_PASSWORD = 'admin123'
 const ADMIN_USER = {
   id: 'admin-001',
   name: 'Super Admin',
@@ -29,174 +26,96 @@ export function AuthProvider({ children }) {
     } catch { return null }
   })
 
-  // Listen to Supabase auth state changes (handles session restore on refresh)
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        // Fetch profile from profiles table
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-
-        const sessionUser = {
-          id: session.user.id,
-          name: profile?.name || session.user.user_metadata?.name || session.user.email,
-          email: session.user.email,
-          role: profile?.role || session.user.user_metadata?.role || 'customer',
-          phone: profile?.phone || session.user.user_metadata?.phone || '',
-          address: profile?.address || '',
-          avatar: profile?.avatar || avatarUrl(profile?.name || session.user.email),
-        }
-        setUser(sessionUser)
-        localStorage.setItem(SESSION_KEY, JSON.stringify(sessionUser))
-      } else if (event === 'SIGNED_OUT') {
-        // Only clear if not admin (admin uses localStorage)
-        const saved = localStorage.getItem(SESSION_KEY)
-        const savedUser = saved ? JSON.parse(saved) : null
-        if (savedUser?.id !== 'admin-001') {
-          setUser(null)
-          localStorage.removeItem(SESSION_KEY)
-        }
-      }
-    })
-    return () => subscription.unsubscribe()
-  }, [])
-
   const login = useCallback(async (email, password, role = null) => {
     if (!email) return { success: false, error: 'Please enter your email.' }
     if (!password) return { success: false, error: 'Please enter your password.' }
 
-    // Admin bypass — never goes to Supabase
-    if (email.trim().toLowerCase() === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+    // Admin bypass
+    if (email.trim().toLowerCase() === 'admin@quickbite.com' && password === 'admin123') {
       setUser(ADMIN_USER)
       localStorage.setItem(SESSION_KEY, JSON.stringify(ADMIN_USER))
+      storeSession({ token: 'admin-token', user: ADMIN_USER })
       return { success: true, role: 'admin' }
     }
 
-    // Regular users via Supabase
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password,
-    })
+    try {
+      const data = await apiRequest('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password })
+      })
 
-    if (error) {
-      if (error.message.includes('Invalid login credentials')) {
-        return { success: false, error: 'Invalid email or password.' }
+      const userRole = data.user?.role || 'customer'
+      if (role && role !== 'admin' && userRole !== role) {
+        return { success: false, error: `This account is a "${userRole}" account. Please select the correct role.` }
       }
-      return { success: false, error: error.message }
+
+      const sessionUser = {
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        role: userRole,
+        phone: data.user.phone || '',
+        address: data.user.address || '',
+        avatar: data.user.avatar || avatarUrl(data.user.name),
+      }
+
+      storeSession({ token: data.token, user: sessionUser })
+      setUser(sessionUser)
+      localStorage.setItem(SESSION_KEY, JSON.stringify(sessionUser))
+      return { success: true, role: userRole }
+    } catch (err) {
+      return { success: false, error: err.message || 'Invalid email or password.' }
     }
-
-    // Fetch profile for role/extra data
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', data.user.id)
-      .single()
-
-    const userRole = profile?.role || data.user.user_metadata?.role || 'customer'
-
-    // Role check if specified
-    if (role && role !== 'admin' && userRole !== role) {
-      await supabase.auth.signOut()
-      return { success: false, error: `This account is a "${userRole}" account. Please select the correct role.` }
-    }
-
-    const sessionUser = {
-      id: data.user.id,
-      name: profile?.name || data.user.user_metadata?.name || data.user.email,
-      email: data.user.email,
-      role: userRole,
-      phone: profile?.phone || '',
-      address: profile?.address || '',
-      avatar: profile?.avatar || avatarUrl(profile?.name || data.user.email),
-    }
-
-    setUser(sessionUser)
-    localStorage.setItem(SESSION_KEY, JSON.stringify(sessionUser))
-    return { success: true, role: userRole }
   }, [])
 
   const signup = useCallback(async (name, email, phone, password, role = 'customer') => {
     if (!name || !email || !password) return { success: false, error: 'All fields are required.' }
 
-    const { data, error } = await supabase.auth.signUp({
-      email: email.trim().toLowerCase(),
-      password,
-      options: {
-        data: { name: name.trim(), role, phone: phone || '' }
+    try {
+      const data = await apiRequest('/auth/signup', {
+        method: 'POST',
+        body: JSON.stringify({ name: name.trim(), email: email.trim().toLowerCase(), password, role, phone: phone || '' })
+      })
+
+      const sessionUser = {
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        role: data.user.role,
+        phone: data.user.phone || '',
+        address: data.user.address || '',
+        avatar: data.user.avatar || avatarUrl(name),
       }
-    })
 
-    if (error) {
-      if (error.message.includes('already registered')) {
-        return { success: false, error: 'An account with this email already exists.' }
-      }
-      return { success: false, error: error.message }
+      storeSession({ token: data.token, user: sessionUser })
+      setUser(sessionUser)
+      localStorage.setItem(SESSION_KEY, JSON.stringify(sessionUser))
+      return { success: true, role: sessionUser.role }
+    } catch (err) {
+      return { success: false, error: err.message || 'Signup failed. Please try again.' }
     }
-
-    if (!data.user) {
-      return { success: false, error: 'Signup failed. Please try again.' }
-    }
-
-    // Manually upsert the profile in case the trigger hasn't fired yet
-    await supabase.from('profiles').upsert({
-      id: data.user.id,
-      name: name.trim(),
-      role,
-      phone: phone || '',
-    }, { onConflict: 'id' })
-
-    const sessionUser = {
-      id: data.user.id,
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      role,
-      phone: phone || '',
-      address: '',
-      avatar: avatarUrl(name),
-    }
-
-    setUser(sessionUser)
-    localStorage.setItem(SESSION_KEY, JSON.stringify(sessionUser))
-    return { success: true, role }
   }, [])
 
-  const logout = useCallback(async () => {
-    if (user?.id === 'admin-001') {
-      setUser(null)
-      localStorage.removeItem(SESSION_KEY)
-      return
-    }
-    await supabase.auth.signOut()
+  const logout = useCallback(() => {
     setUser(null)
     localStorage.removeItem(SESSION_KEY)
-  }, [user])
+    clearSession()
+  }, [])
 
-  const updateProfile = useCallback(async (updates) => {
+  const updateProfile = useCallback((updates) => {
     setUser(prev => {
       const updated = { ...prev, ...updates }
       localStorage.setItem(SESSION_KEY, JSON.stringify(updated))
       return updated
     })
-
-    if (user?.id && user.id !== 'admin-001') {
-      await supabase.from('profiles').update({
-        name: updates.name,
-        phone: updates.phone,
-        address: updates.address,
-        avatar: updates.avatar,
-      }).eq('id', user.id)
-    }
-  }, [user])
+  }, [])
 
   const refreshCurrentUser = useCallback(() => Promise.resolve({ success: true, user }), [user])
 
   return (
     <AuthContext.Provider value={{
       user,
-      token: null,
+      token: getStoredSession()?.token || null,
       isAuthenticated: !!user,
       role: user?.role || null,
       login,

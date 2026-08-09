@@ -23,7 +23,7 @@ export async function requireAuth(req, res, next) {
       return res.status(401).json({ message: 'User no longer exists' })
     }
 
-    req.user = rows[0]
+    req.user = { ...rows[0], sub: rows[0].id }
     next()
   } catch (error) {
     if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {

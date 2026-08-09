@@ -51,7 +51,6 @@ export function CatalogProvider({ children }) {
     return () => { isMounted = false }
   }, [])
 
-  // Merge Supabase restaurants reactively — no localStorage needed
   const value = useMemo(() => {
     const ownerFoods = ownerRestaurants.flatMap(r => r.dishes || [])
     return {
