@@ -54,16 +54,7 @@ export default function Login() {
     setError('')
     if (!email || !password) return setError('Please enter email and password')
     
-    // Check credentials locally first without officially logging in
-    const allUsers = JSON.parse(localStorage.getItem('cravedrop_all_users') || '[]')
-    const found = allUsers.find(u => u.email?.toLowerCase() === email.trim().toLowerCase())
-    
-    if (!found) return setError('Account not found. Please sign up first.')
-    if (role && found.role !== 'admin' && found.role !== role) return setError(`This account is a "${found.role}" account.`)
-    if (found.status === 'banned') return setError('Your account has been banned.')
-    if (found.password && found.password !== password) return setError('Incorrect password.')
-
-    // Credentials are correct. Now send OTP.
+    // Send OTP for verification before completing login
     setLoading(true)
     const newOtp = Math.floor(100000 + Math.random() * 900000).toString()
     setGeneratedOtp(newOtp)
@@ -87,7 +78,7 @@ export default function Login() {
     if (sent) setCountdown(60)
   }
 
-  const handleVerifyOtp = (e) => {
+  const handleVerifyOtp = async (e) => {
     e.preventDefault()
     setError('')
     const enteredOtp = otp.join('')
@@ -99,7 +90,7 @@ export default function Login() {
 
     // Success! Log them in
     setLoading(true)
-    const result = login(email, password, role)
+    const result = await login(email, password, role)
     setLoading(false)
 
     if (result.success) {

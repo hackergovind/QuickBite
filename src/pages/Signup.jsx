@@ -79,7 +79,7 @@ export default function Signup() {
     if (sent) setCountdown(60)
   }
 
-  const handleVerifyOtp = (e) => {
+  const handleVerifyOtp = async (e) => {
     e.preventDefault()
     setError('')
     const enteredOtp = otp.join('')
@@ -91,7 +91,7 @@ export default function Signup() {
 
     // Success! Create the account
     setLoading(true)
-    const result = signup(name, email, phone, password, role)
+    const result = await signup(name, email, phone, password, role)
     setLoading(false)
 
     if (result.success) {

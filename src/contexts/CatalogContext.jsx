@@ -25,7 +25,6 @@ export function CatalogProvider({ children }) {
   const refreshCatalog = useCallback(async () => {
     setIsLoading(true)
     setError('')
-
     try {
       const data = await apiRequest('/catalog')
       setCatalog({ ...EMPTY_CATALOG, ...data })
@@ -38,29 +37,21 @@ export function CatalogProvider({ children }) {
 
   useEffect(() => {
     let isMounted = true
-
-    async function loadCatalog() {
+    async function load() {
       try {
         const data = await apiRequest('/catalog')
-        if (isMounted) {
-          setCatalog({ ...EMPTY_CATALOG, ...data })
-        }
+        if (isMounted) setCatalog({ ...EMPTY_CATALOG, ...data })
       } catch (err) {
-        if (isMounted) {
-          setError(err.message || 'Unable to load catalog')
-        }
+        if (isMounted) setError(err.message || 'Unable to load catalog')
       } finally {
         if (isMounted) setIsLoading(false)
       }
     }
-
-    loadCatalog()
-
-    return () => {
-      isMounted = false
-    }
+    load()
+    return () => { isMounted = false }
   }, [])
 
+  // Merge Supabase restaurants reactively — no localStorage needed
   const value = useMemo(() => {
     const ownerFoods = ownerRestaurants.flatMap(r => r.dishes || [])
     return {
@@ -69,7 +60,7 @@ export function CatalogProvider({ children }) {
       foods: [...(catalog.foods || []), ...ownerFoods],
       isLoading,
       error,
-      refreshCatalog
+      refreshCatalog,
     }
   }, [catalog, ownerRestaurants, isLoading, error, refreshCatalog])
 
