@@ -21,7 +21,7 @@ export default function Footer() {
               Delivering happiness to your doorstep. The fastest, easiest way to get your favorite food.
             </p>
             <div className="flex gap-3">
-              {[FaInstagram, FaTwitter, FaFacebookF, FaLinkedinIn].map((Icon, i) => (
+              {[FaInstagram,  FaFacebookF, ].map((Icon, i) => (
                 <a key={i} href="#" className="w-10 h-10 rounded-xl bg-dark-800 flex items-center justify-center hover:bg-primary-500 hover:text-white transition-all duration-300">
                   <Icon />
                 </a>
@@ -60,7 +60,7 @@ export default function Footer() {
                 <FaGooglePlay className="text-2xl" />
                 <div className="text-left">
                   <p className="text-xs text-gray-400">Get it on</p>
-                  <p className="text-sm font-semibold text-white">Google Play</p>
+                  <p className="text-sm font-semibold text-white">Google Playstore</p>
                 </div>
               </button>
             </div>

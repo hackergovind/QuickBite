@@ -7,16 +7,27 @@ const TYPE_ICONS = {
   other: <FaMapMarkerAlt />,
 }
 
-const SAMPLE_ADDRESSES = [
-  { id: 'a1', type: 'home', label: 'Home', address: '42 Maple Street, New York, NY 10001' },
-  { id: 'a2', type: 'work', label: 'Work', address: '100 Business Park, Manhattan, NY 10002' },
-]
+const DEFAULT_ADDRESS = { id: 'a1', type: 'home', label: 'Home', address: 'AONLA, BAREILLY 243301' }
+const SAMPLE_ADDRESSES = [DEFAULT_ADDRESS]
 
 function loadAddresses() {
   try {
     const data = localStorage.getItem('qb_addresses')
-    return data ? JSON.parse(data) : SAMPLE_ADDRESSES
-  } catch { return SAMPLE_ADDRESSES }
+    if (!data) {
+      saveAddresses(SAMPLE_ADDRESSES)
+      return SAMPLE_ADDRESSES
+    }
+
+    const parsed = JSON.parse(data)
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      saveAddresses(SAMPLE_ADDRESSES)
+      return SAMPLE_ADDRESSES
+    }
+
+    return parsed
+  } catch {
+    return SAMPLE_ADDRESSES
+  }
 }
 function saveAddresses(addrs) { localStorage.setItem('qb_addresses', JSON.stringify(addrs)) }
 
@@ -50,7 +61,7 @@ export default function AddressManager({ selectedId, onSelect, showAdd = true })
         setLocationLoading(false)
       },
       () => {
-        setNewAddr(prev => ({ ...prev, address: 'Current Location (Mock), New York, NY' }))
+        setNewAddr(prev => ({ ...prev, address: 'Current Location (Mock), BAREILLY, BR 243302 ' }))
         setLocationLoading(false)
       }
     )

@@ -40,7 +40,7 @@ export default function Navbar() {
             {/* Location - Desktop */}
             <div className="hidden lg:flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mr-2 shrink-0">
               <FaMapMarkerAlt className="text-primary-500" />
-              <span>New York, NY</span>
+              <span>AONLA,243301</span>
             </div>
 
             {/* Right Actions */}
